@@ -26,5 +26,3 @@ add_subdirectory(app/)
 
 unset(TESTING_ENABLED CACHE)
 unset(RUN_SET CACHE)
-
-
