@@ -63,3 +63,15 @@ int simRand()
 {
     return rand();
 }
+
+int simAbs(int x) {
+    return x > 0 ? x : -x; 
+}
+
+int simMax(int x, int y) {
+    return x > y ? x : y;    
+}
+
+int simMin(int x, int y) {
+    return x > y ? y : x;    
+}
