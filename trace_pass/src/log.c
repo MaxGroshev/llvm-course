@@ -1,7 +1,7 @@
 #include <stdio.h>
 
-void funcStartLogger(char *funcName) {
-  printf("[LOG] Start function '%s'\n", funcName);
+void funcStartLogger(char *Instruction, char *User) {
+  printf("[LOG] Start function '%s' <- '%s'\n", User, Instruction);
 }
 
 void callLogger(char *callerName, char *calleeName, long int valID) {
@@ -20,4 +20,8 @@ void binOptLogger(int val, int arg0, int arg1, char *opName, char *funcName,
                   long int valID) {
   printf("[LOG] In function '%s': %d = %d %s %d {%ld}\n", funcName, val, arg0,
          opName, arg1, valID);
+}
+
+__attribute__((noinline)) void funcLogUses(char *Instruction, char *User) {
+  printf("%s<-%s\n", User, Instruction);
 }
