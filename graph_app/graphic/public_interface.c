@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <time.h>
+#include <SDL2/SDL.h>
 
 #include "public_interface.h"
 

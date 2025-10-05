@@ -6,7 +6,7 @@ project(app)
 
 #-----------------------------------------------------------------------------------------
 
-set(CMAKE_CPP_COMPILER clang)
+set(CMAKE_CPP_COMPILER clang++)
 # set(CMAKE_C_COMPILER clang)
 
 #-----------------------------------------------------------------------------------------
@@ -14,8 +14,6 @@ set(CMAKE_CPP_COMPILER clang)
 set(CMAKE_BUILD_TYPE "Debug")
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(CMAKE_CXX_FLAGS  -fsanitize=address)
-    add_compile_definitions(MY_DEBUG)
     message("Debug_version")
 endif ()
 
