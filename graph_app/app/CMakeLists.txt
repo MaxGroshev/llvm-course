@@ -1,14 +1,9 @@
-cmake_minimum_required(VERSION 3.21)
-
-#-----------------------------------------------------------------------------------------
-
 add_executable(${PROJECT_NAME}
     main.c
     abilities/main_ability.c
     ../../trace_pass/src/log.c
 )
 
-add_dependencies(${PROJECT_NAME} build_pass)
 target_compile_options(${PROJECT_NAME} PUBLIC
     -fpass-plugin=${PASS_OUTPUT}
 )

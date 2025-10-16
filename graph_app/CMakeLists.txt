@@ -1,7 +1,3 @@
-cmake_minimum_required(VERSION 3.21)
-
-#-----------------------------------------------------------------------------------------
-
 project(app)
 
 #-----------------------------------------------------------------------------------------
@@ -20,6 +16,7 @@ endif ()
 #-----------------------------------------------------------------------------------------
 
 # compile lib for work with grpahic
+# add_dependencies(${PROJECT_NAME} PRIVATE trace_pass)
 add_subdirectory(graphic/)
 add_subdirectory(app/)
 

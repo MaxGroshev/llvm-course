@@ -21,19 +21,19 @@ int app() {
     const int gateSize = SIM_Y_SIZE / 7;
     int scene[SIM_Y_SIZE][SIM_X_SIZE] = {0};
     int barCenter = getBarrierCenter();
-    int birdColor = 0xFFC908; // #FFC908
+    int birdColor = 0xFFC908; // #9008ffff
     int x_bird    = SIM_X_SIZE / 8 * 7 - 1;
     int y_bird    = barCenter;
     
     scene[y_bird][SIM_X_SIZE / 2 - 1] = birdColor; 
     for (int cnt = 0;; cnt++) {
         for(int i = 0; i < SIM_Y_SIZE; i++) {
-            for(int j = 1; j < SIM_X_SIZE - 1; j++) {
+            for(int j = 1; j < SIM_X_SIZE - 1; j++) { 
                 simPutPixel(j - 1, i, scene[i][j]); 
                 if (x_bird != j || y_bird != i) {
                     scene[i][j] = scene[i][j + 1];
                 }
-            }
+            } 
         }
         if (cnt % (SIM_X_SIZE / 4) == 0) {
             barCenter = generateNewBarrier(SIM_X_SIZE, SIM_Y_SIZE, scene);
