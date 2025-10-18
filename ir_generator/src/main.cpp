@@ -3,9 +3,8 @@
 
 int main(int argc, char **argv) {
     irWrapper ir;
-    ir.getFromFile(argc, argv);
-    irGenerator irGen;
-    irGen.generate(ir);
+    ir.initModule();
+    ir.genMainAbility();
 
     return 0;
 }
