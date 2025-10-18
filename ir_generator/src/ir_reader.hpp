@@ -42,10 +42,8 @@ class irWrapper {
                     mod.get()
                 );
                 lifetimeStartFunc->addParamAttr(0, Attribute::ImmArg);
-                // lifetimeStartFunc->addParamAttr(1, Attribute::Noca);
             }
             
-            // llvm.memset.p0.i64
             if (!mod->getFunction("llvm.memset.p0.i64")) {
                 FunctionType* memsetType = FunctionType::get(
                     Type::getVoidTy(context),
@@ -91,7 +89,6 @@ class irWrapper {
                 Function::Create(minType, Function::ExternalLinkage, "simMin", mod.get());
             }
             
-            // simMax - функция для нахождения максимума
             if (!mod->getFunction("simMax")) {
                 FunctionType* maxType = FunctionType::get(
                     Type::getInt32Ty(context),
@@ -100,14 +97,13 @@ class irWrapper {
                 Function::Create(maxType, Function::ExternalLinkage, "simMax", mod.get());
             }
             
-            // simFlush - функция для обновления экрана
             if (!mod->getFunction("simFlush")) {
                 FunctionType* flushType = FunctionType::get(
                     Type::getVoidTy(context), false);
                 Function::Create(flushType, Function::ExternalLinkage, "simFlush", mod.get());
             }
         }
-        void gen_getBarrierCenter() { //TODO remove (...) before @simRand()
+        void gen_getBarrierCenter() {
            FunctionType* funcType = FunctionType::get(
                 Type::getInt32Ty(context),
                 false
@@ -126,11 +122,6 @@ class irWrapper {
             IRBuilder<> builder(entryBlock);
             
             Function* simRandFunc = mod->getFunction("simRand");
-            
-    // tail call void @simFlush() #6
-    // Function* simFlush = mod->getFunction("simFlush");
-    // CallInst* flushCall = builder.CreateCall(simFlush, {});
-    // flushCall->setTailCall(true);
 
             CallInst* call = builder.CreateCall(simRandFunc, {});
             call->setTailCall(true);
@@ -143,11 +134,11 @@ class irWrapper {
 
         void gen_generateNewBarrier() {
             FunctionType* funcType = FunctionType::get(
-                Type::getInt32Ty(context), // возвращаемый тип
+                Type::getInt32Ty(context),
                 {
-                    Type::getInt32Ty(context), // %0 - i32
-                    Type::getInt32Ty(context), // %1 - i32  
-                    PointerType::get(Type::getInt32Ty(context), 0) // %2 - ptr
+                    Type::getInt32Ty(context),
+                    Type::getInt32Ty(context), 
+                    PointerType::get(Type::getInt32Ty(context), 0)
                 },
                 false
             );
@@ -187,7 +178,7 @@ class irWrapper {
             
             // %5 = tail call i32 @simRand()
             Function* simRand = mod->getFunction("simRand");
-            CallInst* randCall = builder.CreateCall(simRand, {});
+            CallInst* randCall = builder.CreateCall(simRand, {}, "5");
             randCall->setTailCall(true);
             
             // %6 = srem i32 %5, 246
@@ -208,8 +199,8 @@ class irWrapper {
             smaxCall->setTailCall(true);
             
             // %11 = zext nneg i32 %10 to i64
-            Value* zextSmax = builder.CreateZExt(smaxCall, Type::getInt64Ty(context), "11");
-            
+            Value* zextSmax = builder.CreateZExt(smaxCall, Type::getInt64Ty(context), "11", true);
+
             // br label %12
             builder.CreateBr(loopHeader);
             
@@ -270,7 +261,7 @@ class irWrapper {
             builder.SetInsertPoint(loopLatch);
             
             // %25 = add nuw nsw i64 %13, 1
-            Value* add = builder.CreateNUWAdd(phi, ConstantInt::get(Type::getInt64Ty(context), 1), "25");
+            Value* add = builder.CreateAdd(phi, ConstantInt::get(Type::getInt64Ty(context), 1), "25", true, true);
             
             // br label %12, !llvm.loop !10
             BranchInst* branch = builder.CreateBr(loopHeader);
@@ -344,7 +335,7 @@ class irWrapper {
             
             // %2 = tail call i32 @simRand() #6
             Function* simRand = mod->getFunction("simRand");
-            CallInst* randCall = builder.CreateCall(simRand, {});
+            CallInst* randCall = builder.CreateCall(simRand, {}, "2");
             randCall->setTailCall(true);
             
             // %3 = srem i32 %2, 246
@@ -394,7 +385,7 @@ class irWrapper {
             Value* cmp14 = builder.CreateICmpEQ(phi11, zext, "14");
             
             // %15 = trunc nuw nsw i64 %11 to i32
-            Value* trunc15 = builder.CreateTrunc(phi11, Type::getInt32Ty(context), "15");
+            Value* trunc15 = builder.CreateTrunc(phi11, Type::getInt32Ty(context), "15", true, true);
             
             // br label %19
             builder.CreateBr(block19);
@@ -425,7 +416,7 @@ class irWrapper {
             builder.SetInsertPoint(block22);
             
             // %23 = add nuw nsw i64 %11, 1
-            Value* add23 = builder.CreateNUWAdd(phi11, ConstantInt::get(Type::getInt64Ty(context), 1), "23");
+            Value* add23 = builder.CreateAdd(phi11, ConstantInt::get(Type::getInt64Ty(context), 1), "23", true, true);
             
             // br label %10, !llvm.loop !12
             builder.CreateBr(block10);
@@ -479,7 +470,7 @@ class irWrapper {
             builder.SetInsertPoint(block33);
             
             // %34 = add nuw nsw i64 %20, 1
-            Value* add34 = builder.CreateNUWAdd(phi20, ConstantInt::get(Type::getInt64Ty(context), 1), "34");
+            Value* add34 = builder.CreateAdd(phi20, ConstantInt::get(Type::getInt64Ty(context), 1), "34", true, true);
             
             // %35 = getelementptr inbounds [256 x [512 x i32]], ptr %1, i64 0, i64 %11, i64 %34
             Value* gep35 = builder.CreateInBoundsGEP(outerArrayType, alloca, {
@@ -526,7 +517,7 @@ class irWrapper {
             
             // Блок 41
             builder.SetInsertPoint(block41);
-            PHINode* phi42 = builder.CreatePHI(Type::getInt64Ty(context), 2, "42");
+            PHINode* phi42 = builder.CreatePHI(Type::getInt64Ty(context), 0, "42");
             
             // %43 = tail call i32 @simMax(i32 noundef %7, i32 noundef %38) #6
             Function* simMax = mod->getFunction("simMax");
@@ -594,7 +585,7 @@ class irWrapper {
             flushCall->setTailCall(true);
             
             // %54 = add nuw nsw i32 %8, 1
-            Value* add54 = builder.CreateNUWAdd(phi8, ConstantInt::get(Type::getInt32Ty(context), 1), "54");
+            Value* add54 = builder.CreateAdd(phi8, ConstantInt::get(Type::getInt32Ty(context), 1), "54", true, true);
             
             // br label %6
             builder.CreateBr(block6);
