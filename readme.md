@@ -1,3 +1,7 @@
+<h1 style="text-align:center;">HW1</h1>
+check ./app/README.md
+
+<h1 style="text-align:center;">HW2</h1>
 ## How to build graphic app with applied pass ##
 
 This command build app+pass
@@ -61,3 +65,26 @@ Results are reasonable. Because interaction with memory takes the biggest part o
   2. getelementptr<-sext → store<-getelementptr → add<-load → store<-add → icmp<-load - 1828087 раз(а)
   3. store<-load → sext<-load → getelementptr<-sext → getelementptr<-getelementptr → sext<-load - 1827902 раз(а)
 ```
+
+<h1 style="text-align:center;">HW3</h1>
+
+## How to build graphic app with custom ir ##
+
+### Compile to bin file and run
+```bash 
+mkdir build
+cd ./build
+# mac command:
+cmake -DLLVM_DIR=/opt/homebrew/opt/llvm@<>/lib/cmake/llvm -DCMAKE_C_COMPILER=/opt/homebrew/opt/llvm@<>/bin/clang -DCMAKE_CXX_COMPILER=/opt/homebrew/opt/llvm@<>/bin/clang++ -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..
+# others platform(should work)
+cmake ..
+make run_app_with_generated_ll
+```
+### Compile to .ll and run `lli`
+```bash 
+mkdir build
+cd ./build
+cmake -DSDL2_DYN_LIB_PATH=<>..
+# for instance
+cmake -DSDL2_DYN_LIB_PATH=/opt/homebrew/Cellar/sdl2/2.32.10/lib/libSDL2.dylib..
+make run_app_with_generated_ll_interp
