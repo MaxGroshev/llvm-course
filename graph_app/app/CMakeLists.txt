@@ -8,14 +8,15 @@ target_compile_options(${PROJECT_NAME} PUBLIC
     -fpass-plugin=${PASS_OUTPUT}
 )
 
+set(LLVM_OPT_LEVEL -Oz)
 add_custom_target(
     get_app_ir
-    COMMAND clang -S -emit-llvm -O3 
+    COMMAND clang -S -emit-llvm ${LLVM_OPT_LEVEL}
         -I${CMAKE_CURRENT_SOURCE_DIR}/../graphic/
         -I${CMAKE_CURRENT_SOURCE_DIR}/../graphic/
         -I${SDL2_INCLUDE_DIRS}/
         ${CMAKE_CURRENT_SOURCE_DIR}/abilities/main_ability.c
-        -o ${CMAKE_CURRENT_SOURCE_DIR}/../llvm_ir/main_ability-O3.ll
+        -o ${CMAKE_CURRENT_SOURCE_DIR}/../llvm_ir/main_ability${LLVM_OPT_LEVEL}.ll
 )
 
 target_link_libraries(${PROJECT_NAME} 
