@@ -2,24 +2,24 @@ entry
     ALLOCA_2DEM x1 256 512
     SIM_RAND x2
     SREM x3 x2 246
-    SEXT_32_64 x4 x3
+    SEXT x4 x3
     GETELEMPTR_2DEM x5 256 512 x1 0 x4 255
     ST x5 16763144
     GETELEMPTR x6 x1 2040
-    ADD x71 x3 0
+    ADDi x71 x3 0
     MOV x72 0
 BB7
-    ADD x8 x71 0
-    ADD x9 x72 0
+    ADDi x8 x71 0
+    ADDi x9 x72 0
     ZEXT x10 x8
     MOV x73 0
 BB11
-    ADD x12 x73 0
+    ADDi x12 x73 0
     CMP_EQ x13 x12 256
     BR_COND x13 BB17
 BB14
     CMP_EQ x15 x12 x10 
-    TRUNC_64_TO_32 x16 x12
+    TRUNC x16 x12
     MOV x74 1
     BR BB20
 BB17
@@ -34,25 +34,24 @@ BB20
     BR_COND x22 BB23
     BR BB25
 BB23
-    ADD x24 x12 1
-    ADD x73 x24 0
+    ADDi x24 x12 1
+    ADDi x73 x24 0
     BR BB11
 BB25
     GETELEMPTR_2DEM x26 256 512 x1 0 x12 x21
-    TRUNC_64_TO_32 x27 x21 
-    ADD x29 x28 -1
+    TRUNC x27 x21 
+    ADDi x29 x28 -1
     PUT_PIXEL x29 x16 x27
     CMP_EQ x30 x21 447
     SELECT x31 x30 x15 0
     MOV x75 448
-    BR_COND x31 BB32
-    BR BB34
+    BR_COND x31 BB32 BB34
 BB32
     MOV x33 x75
     MOV x74 x33
     BR BB20
 BB34
-    ADD x35 x21 1
+    ADDi x35 x21 1
     GETELEMPTR_2DEM x36 256 512 x1 0 x12 x35
     LD x37 x36
     ST x37 x26
@@ -67,21 +66,19 @@ BB38:
 BB42
     MOV x43 x76
     CMP_EQ x44 x43 256
-    BR_COND x44 BB55
-    BR BB45
+    BR_COND x44 BB55 BB45
 BB45
-    TRUNC_64_TO_32 x46 x43
+    TRUNC x46 x43
     SUB x47 x40 x46
     SIM_ABS x48 x47
     CMP_SGT x49 x48 35
-    COND_BR x49 BB%)
-    BR BB53
+    BR_COND x49 BB50 BB53
 BB50
     SHL x51 x43 11
     GETELEMPTR x52 x6 x51
     ST 7522568 x52
 BB53
-    ADD x54 x43 1
+    ADDi x54 x43 1
     MOV X76 x54
     BR BB42
 BB55
@@ -94,8 +91,7 @@ BB58
     SIM_MAX x60 x8 x44
     SEXT x61 x60
     CMP_SLT x62 x59
-    COND_BR x63 BB65
-    BR BB63
+    BR_COND x63 BB65 BB63
 BB63
     GETELEMPTR_2DEM x64 256 512 x1 0 x41 447
     ST 16763144 x64
@@ -104,15 +100,15 @@ BB63
 BB65
     GETELEMPTR_2DEM x66 256 512 x1 0 x59 447
     ST 16763144 x66
-    ADD x67 x59 1
+    ADDi x67 x59 1
     MOV x77 x67
     BR BB58
 BB68
     MOV x69 x78
     SIM_FLUSH
-    ADD x70 x9 1
-    ADD x71 x69 0
-    ADD x72 x70 0
+    ADDi x70 x9 1
+    ADDi x71 x69 0
+    ADDi x72 x70 0
     BR BB7
 exit
     EXIT

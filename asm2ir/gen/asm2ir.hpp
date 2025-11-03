@@ -99,100 +99,106 @@ class asm2ir {
                     handlePutPixel(input, name, arg);
                     continue;
                 }
-                if (!name.compare("FLUSH")) {
+                if (!name.compare("SIM_FLUSH")) {
                     outs() << "\tFLUSH\n";
                     builder.CreateCall(simFlushFunc);
                     continue;
                 }
-                if (!name.compare("XOR")) {
-                    input >> arg;
-                    outs() << "\t" << arg;
-                    // res
-                    Value *res_p = builder.CreateConstGEP2_32(regFileType, regFile, 0,
-                                                            std::stoi(arg.substr(1)));
-                    input >> arg;
-                    outs() << " = " << arg;
-                    // arg1
-                    Value *arg1_p = builder.CreateConstGEP2_32(
-                        regFileType, regFile, 0, std::stoi(arg.substr(1)));
-                    input >> arg;
-                    outs() << " ^ " << arg << '\n';
-                    // arg2
-                    Value *arg2_p = builder.CreateConstGEP2_32(
-                        regFileType, regFile, 0, std::stoi(arg.substr(1)));
-                    Value *xor_arg1_arg2 =
-                        builder.CreateXor(builder.CreateLoad(int32Type, arg1_p),
-                                        builder.CreateLoad(int32Type, arg2_p));
-                    builder.CreateStore(xor_arg1_arg2, res_p);
+                if (!name.compare("SIM_RAND")) {
+                    handleSimRand(input, name, arg);
                     continue;
                 }
-                if (!name.compare("MUL")) {
-                    input >> arg;
-                    outs() << "\t" << arg;
-                    // res
-                    Value *res_p = builder.CreateConstGEP2_32(regFileType, regFile, 0,
-                                                            std::stoi(arg.substr(1)));
-                    input >> arg;
-                    outs() << " = " << arg;
-                    // arg1
-                    Value *arg1_p = builder.CreateConstGEP2_32(
-                        regFileType, regFile, 0, std::stoi(arg.substr(1)));
-                    input >> arg;
-                    outs() << " * " << arg << '\n';
-                    // arg2
-                    Value *arg2_p = builder.CreateConstGEP2_32(
-                        regFileType, regFile, 0, std::stoi(arg.substr(1)));
-                    Value *mul_arg1_arg2 =
-                        builder.CreateMul(builder.CreateLoad(int32Type, arg1_p),
-                                        builder.CreateLoad(int32Type, arg2_p));
-                    builder.CreateStore(mul_arg1_arg2, res_p);
+                if (!name.compare("SIM_MAX")) {
+                    handleSimMax(input, name, arg);
                     continue;
                 }
-                if (!name.compare("SUBi")) {
-                    input >> arg;
-                    outs() << "\t" << arg;
-                    // res
-                    Value *res_p = builder.CreateConstGEP2_32(regFileType, regFile, 0,
-                                                            std::stoi(arg.substr(1)));
-                    input >> arg;
-                    outs() << " = " << arg;
-                    // arg1
-                    Value *arg1_p = builder.CreateConstGEP2_32(
-                        regFileType, regFile, 0, std::stoi(arg.substr(1)));
-                    input >> arg;
-                    outs() << " - " << arg << '\n';
-                    // arg2
-                    Value *arg2 = builder.getInt32(std::stoi(arg));
-                    Value *sub_arg1_arg2 =
-                        builder.CreateSub(builder.CreateLoad(int32Type, arg1_p), arg2);
-                    builder.CreateStore(sub_arg1_arg2, res_p);
+                if (!name.compare("SIM_MIN")) {
+                    handleSimMin(input, name, arg);
+                    continue;
+                }
+                if (!name.compare("SIM_ABS")) {
+                    handleSimMin(input, name, arg);
                     continue;
                 }
 
-                if (!name.compare("INC_NEi")) {
-                    input >> arg;
-                    outs() << "\t" << arg;
-                    // res
-                    Value *res_p = builder.CreateConstGEP2_32(regFileType, regFile, 0,
-                                                            std::stoi(arg.substr(1)));
-                    input >> arg;
-                    outs() << " = ++" << arg;
-                    // arg1
-                    Value *arg1_p = builder.CreateConstGEP2_32(
-                        regFileType, regFile, 0, std::stoi(arg.substr(1)));
-                    Value *arg1 = builder.CreateAdd(
-                        builder.CreateLoad(int32Type, arg1_p), builder.getInt32(1));
-                    builder.CreateStore(arg1, arg1_p);
-                    input >> arg;
-                    outs() << " != " << arg << '\n';
-                    // arg2
-                    Value *arg2 = builder.getInt32(std::stoi(arg));
-                    Value *cond = builder.CreateICmpNE(arg1, arg2);
-                    builder.CreateStore(cond, res_p);
+                if (!name.compare("SUB")) {
+                    handleSub(input, name, arg);
+                    continue;
+                }
+                if (!name.compare("ADDi")) {
+                    handleAddi(input, name, arg);
                     continue;
                 }
                 if (!name.compare("BR_COND")) {
                     handleBrCond(input, name, arg);
+                    continue;   
+                }
+                if (!name.compare("BR")) {
+                    handleBr(input, name, arg);
+                    continue;   
+                }
+                if (!name.compare("ANDi")) {
+                    handleAndi(input, name, arg);
+                    continue;   
+                }
+                if (!name.compare("MOV")) {
+                    handleMov(input, name, arg);
+                    continue;   
+                }
+                if (!name.compare("MOVi")) {
+                    handleMovi(input, name, arg);
+                    continue;   
+                }
+                if (!name.compare("SREM")) {
+                    handleSremi(input, name, arg);
+                    continue;   
+                }
+                if (!name.compare("SEXT")) {
+                    handleSremi(input, name, arg);
+                    continue;   
+                }
+                if (!name.compare("ZEXT")) {
+                    handleZext(input, name, arg);
+                    continue;   
+                }
+                if (!name.compare("TRUNC")) {
+                    handleTrunc(input, name, arg);
+                    continue;   
+                }
+                if (!name.compare("GETELEMPTR_2DEM")) {
+                    handleGetelemptr(input, name, arg);
+                    continue;   
+                }
+                if (!name.compare("ST")) {
+                    handleSt(input, name, arg);
+                    continue;   
+                }
+                if (!name.compare("LD")) {
+                    handleLd(input, name, arg);
+                    continue;   
+                }
+                if (!name.compare("SELECT")) {
+                    handleSelect(input, name, arg);
+                    continue;   
+                }
+                if (!name.compare("CMP_EQ")) {
+                    handleCmpEq(input, name, arg);
+                    continue;   
+                }
+                if (!name.compare("CMP_SGT")) {
+                    handleCmpSgt(input, name, arg);
+                    continue;   
+                }
+                if (!name.compare("CMP_SLT")) {
+                    handleCmpSlt(input, name, arg);
+                    continue;   
+                }
+                if (!name.compare("ALLOCA_2DEM")) {
+                    handleAlloca(input, name, arg);
+                    continue;   
+                }
+                if (!name.compare("SHL")) {
+                    handleShl(input, name, arg);
                     continue;   
                 }
 
@@ -244,8 +250,31 @@ class asm2ir {
         }
     private:
         void handlePutPixel(std::ifstream& input, std::string& name, std::string& arg);
-        void handleBrCond(std::ifstream& input , std::string& name, std::string& arg);
+        void handleSimRand(std::ifstream& input , std::string& name, std::string& arg);
+        void handleSimMax(std::ifstream& input , std::string& name, std::string& arg);
+        void handleSimMin(std::ifstream& input , std::string& name, std::string& arg);
+        void handleSimAbs(std::ifstream& input , std::string& name, std::string& arg);
 
+        void handleBrCond(std::ifstream& input , std::string& name, std::string& arg);
+        void handleSub(std::ifstream& input , std::string& name, std::string& arg);
+        void handleAddi(std::ifstream& input , std::string& name, std::string& arg);
+        void handleAlloca(std::ifstream& input , std::string& name, std::string& arg);
+        void handleSremi(std::ifstream& input , std::string& name, std::string& arg);
+        void handleSext(std::ifstream& input , std::string& name, std::string& arg);
+        void handleGetelemptr(std::ifstream& input , std::string& name, std::string& arg);
+        void handleSt(std::ifstream& input , std::string& name, std::string& arg);
+        void handleZext(std::ifstream& input , std::string& name, std::string& arg);
+        void handleCmpEq(std::ifstream& input , std::string& name, std::string& arg);
+        void handleCmpSlt(std::ifstream& input , std::string& name, std::string& arg);
+        void handleCmpSgt(std::ifstream& input , std::string& name, std::string& arg);
+        void handleTrunc(std::ifstream& input , std::string& name, std::string& arg);
+        void handleBr(std::ifstream& input , std::string& name, std::string& arg);
+        void handleAndi(std::ifstream& input , std::string& name, std::string& arg);
+        void handleSelect(std::ifstream& input , std::string& name, std::string& arg);
+        void handleLd(std::ifstream& input , std::string& name, std::string& arg);
+        void handleMov(std::ifstream& input , std::string& name, std::string& arg);
+        void handleMovi(std::ifstream& input , std::string& name, std::string& arg);
+        void handleShl(std::ifstream& input , std::string& name, std::string& arg);
 
         LLVMContext context;
         std::unique_ptr<Module> module;
