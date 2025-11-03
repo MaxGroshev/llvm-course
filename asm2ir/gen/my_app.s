@@ -1,0 +1,102 @@
+entry
+    ALLOCA_2DEM x1 256 512
+    SIM_RAND x2
+    SREM x3 x2 246
+    SEXT_32_64 x4 x3
+    GETELEMPTR_2DEM x5 256 512 x1 0 x4 255
+    ST x5 16763144
+    GETELEMPTR x6 x1 2040
+BB7
+    //x8 phi
+    //x9 phi
+    ZEXT x10 x8
+BB11
+    //x12 phi
+    CMP_EQ x13 x12 256
+    BR_COND x13 BB17
+BB14
+    CMP_EQ x15 x12 x10 
+    TRUNC_64_TO_32 x16 x12
+    BR BB20
+BB17
+    AND x18 x9 127
+    CMP_EQ x19 x18 0
+    BR_COND x19 BB38
+    BR 68
+BB20
+    //x21 phi
+    CMP_EQ x22 x21 511
+    BR_COND x22 BB23
+    BR BB25
+BB23
+    ADD x24 x12 1
+    BR BB11
+BB25
+    GETELEMPTR_2DEM x26 256 512 x1 0 x12 x21
+    TRUNC_64_TO_32 x27 x21 
+    ADD x29 x28 -1
+    PUT_PIXEL x29 x16 x27
+    CMP_EQ x30 x21 447
+    SELECT x31 x30 x15 0
+    BR_COND x31 BB32
+    BR BB34
+BB32
+    //x33 phi
+    BR BB20
+BB34
+    ADD x35 x21 1
+    GETELEMPTR_2DEM x36 256 512 x1 0 x12 x35
+    LD x37 x36
+    ST x37 x26
+    BR BB32
+BB38:        
+    SIM_RAND x39
+    SREM x40 x39 246
+    SEXT x41 x40 //hmmmmm
+    BR BB42    
+BB42
+    //x43 phi
+    CMP_EQ x44 x43 256
+    BR_COND x44 BB55
+    BR BB45
+BB45
+    TRUNC_64_TO_32 x46 x43
+    SUB x47 x40 x46
+    SIM_ABS x48 x47
+    CMP_SGT x49 x48 35
+    COND_BR x49 BB%)
+    BR BB53
+BB50
+    SHL x51 x43 11
+    GETELEMPTR x52 x6 x51
+    ST 7522568 x52
+BB53
+    ADD x54 x43 1
+    BR BB42
+BB55
+    SIM_MIN x56 x8 x40
+    SEXT x57 x56
+    BR BB58
+BB58
+    //x9 phi
+    SIM_MAX x60 x8 x44
+    SEXT x61 x60
+    CMP_SLT x62 x59
+    COND_BR x63 BB65
+    BR BB63
+BB63
+    GETELEMPTR_2DEM x36 256 512 x1 0 x41 447
+    ST 16763144 x46
+    BR BB68
+BB65
+    GETELEMPTR_2DEM x66 256 512 x1 0 x59 447
+    ST 16763144 x66
+    ADD x67 x59 1
+    BR BB58
+BB68
+    //x69 phi
+    SIM_FLUSH
+    ADD x70 x9 1
+    BR BB7
+exit
+    EXIT

@@ -3,182 +3,158 @@ source_filename = "/Users/max/studing/prog/llvm_course/graph_app/app/abilities/m
 target datalayout = "e-m:o-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-n32:64-S128-Fn32"
 target triple = "arm64-apple-macosx15.0.0"
 
-; Function Attrs: minsize nounwind optsize ssp uwtable(sync)
-define range(i32 -245, 246) i32 @getBarrierCenter() local_unnamed_addr #0 {
-  %1 = tail call i32 @simRand() #6
-  %2 = srem i32 %1, 246
-  ret i32 %2
-}
-
-; Function Attrs: minsize optsize
-declare i32 @simRand(...) local_unnamed_addr #1
-
-; Function Attrs: minsize nounwind optsize ssp uwtable(sync)
-define range(i32 -245, 246) i32 @generateNewBarrier(i32 noundef %0, i32 noundef %1, ptr nocapture noundef writeonly %2) local_unnamed_addr #0 {
-  %4 = zext i32 %0 to i64
-  %5 = tail call i32 @simRand() #6
-  %6 = srem i32 %5, 246
-  %7 = sext i32 %0 to i64
-  %8 = getelementptr i32, ptr %2, i64 %7
-  %9 = getelementptr i8, ptr %8, i64 -8
-  %10 = tail call i32 @llvm.smax.i32(i32 %1, i32 0)
-  %11 = zext nneg i32 %10 to i64
-  br label %12
-
-12:                                               ; preds = %24, %3
-  %13 = phi i64 [ %25, %24 ], [ 0, %3 ]
-  %14 = icmp eq i64 %13, %11
-  br i1 %14, label %15, label %16
-
-15:                                               ; preds = %12
-  ret i32 %6
-
-16:                                               ; preds = %12
-  %17 = trunc i64 %13 to i32
-  %18 = sub i32 %6, %17
-  %19 = tail call i32 @simAbs(i32 noundef %18) #6
-  %20 = icmp sgt i32 %19, 35
-  br i1 %20, label %21, label %24
-
-21:                                               ; preds = %16
-  %22 = mul nuw nsw i64 %13, %4
-  %23 = getelementptr i32, ptr %9, i64 %22
-  store i32 7522568, ptr %23, align 4, !tbaa !6
-  br label %24
-
-24:                                               ; preds = %16, %21
-  %25 = add nuw nsw i64 %13, 1
-  br label %12, !llvm.loop !10
-}
-
-; Function Attrs: mustprogress nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
-declare void @llvm.lifetime.start.p0(i64 immarg, ptr nocapture) #2
-
-; Function Attrs: minsize optsize
-declare i32 @simAbs(i32 noundef) local_unnamed_addr #1
-
 ; Function Attrs: minsize noreturn nounwind optsize ssp uwtable(sync)
-define noundef i32 @app() local_unnamed_addr #3 {
+define noundef i32 @app() local_unnamed_addr #0 {
   %1 = alloca [256 x [512 x i32]], align 4
-  call void @llvm.lifetime.start.p0(i64 524288, ptr nonnull %1) #7
+  call void @llvm.lifetime.start.p0(i64 524288, ptr nonnull %1) #4
   call void @llvm.memset.p0.i64(ptr noundef nonnull align 4 dereferenceable(524288) %1, i8 0, i64 524288, i1 false)
-  %2 = tail call i32 @simRand() #6
+  %2 = tail call i32 @simRand() #5
   %3 = srem i32 %2, 246
   %4 = sext i32 %3 to i64
   %5 = getelementptr inbounds [256 x [512 x i32]], ptr %1, i64 0, i64 %4, i64 255
   store i32 16763144, ptr %5, align 4, !tbaa !6
-  br label %6
+  %6 = getelementptr inbounds nuw i8, ptr %1, i64 2040
+  br label %7
 
-6:                                                ; preds = %52, %0
-  %7 = phi i32 [ %3, %0 ], [ %53, %52 ]
-  %8 = phi i32 [ 0, %0 ], [ %54, %52 ]
-  %9 = zext i32 %7 to i64
-  br label %10
+7:                                                ; preds = %68, %0
+  %8 = phi i32 [ %3, %0 ], [ %69, %68 ]
+  %9 = phi i32 [ 0, %0 ], [ %70, %68 ]
+  %10 = zext i32 %8 to i64
+  br label %11
 
-10:                                               ; preds = %22, %6
-  %11 = phi i64 [ %23, %22 ], [ 0, %6 ]
-  %12 = icmp eq i64 %11, 256
-  br i1 %12, label %16, label %13
+11:                                               ; preds = %23, %7
+  %12 = phi i64 [ %24, %23 ], [ 0, %7 ]
+  %13 = icmp eq i64 %12, 256
+  br i1 %13, label %17, label %14
 
-13:                                               ; preds = %10
-  %14 = icmp eq i64 %11, %9
-  %15 = trunc nuw nsw i64 %11 to i32
-  br label %19
+14:                                               ; preds = %11
+  %15 = icmp eq i64 %12, %10
+  %16 = trunc nuw nsw i64 %12 to i32
+  br label %20
 
-16:                                               ; preds = %10
-  %17 = and i32 %8, 127
-  %18 = icmp eq i32 %17, 0
-  br i1 %18, label %37, label %52
+17:                                               ; preds = %11
+  %18 = and i32 %9, 127
+  %19 = icmp eq i32 %18, 0
+  br i1 %19, label %38, label %68
 
-19:                                               ; preds = %31, %13
-  %20 = phi i64 [ 1, %13 ], [ %32, %31 ]
-  %21 = icmp eq i64 %20, 511
-  br i1 %21, label %22, label %24
+20:                                               ; preds = %32, %14
+  %21 = phi i64 [ 1, %14 ], [ %33, %32 ]
+  %22 = icmp eq i64 %21, 511
+  br i1 %22, label %23, label %25
 
-22:                                               ; preds = %19
-  %23 = add nuw nsw i64 %11, 1
-  br label %10, !llvm.loop !12
+23:                                               ; preds = %20
+  %24 = add nuw nsw i64 %12, 1
+  br label %11, !llvm.loop !10
 
-24:                                               ; preds = %19
-  %25 = getelementptr inbounds nuw [256 x [512 x i32]], ptr %1, i64 0, i64 %11, i64 %20
-  %26 = load i32, ptr %25, align 4, !tbaa !6
-  %27 = trunc i64 %20 to i32
-  %28 = add i32 %27, -1
-  tail call void @simPutPixel(i32 noundef %28, i32 noundef %15, i32 noundef %26) #6
-  %29 = icmp eq i64 %20, 447
-  %30 = select i1 %29, i1 %14, i1 false
-  br i1 %30, label %31, label %33
+25:                                               ; preds = %20
+  %26 = getelementptr inbounds nuw [256 x [512 x i32]], ptr %1, i64 0, i64 %12, i64 %21
+  %27 = load i32, ptr %26, align 4, !tbaa !6
+  %28 = trunc i64 %21 to i32
+  %29 = add i32 %28, -1
+  tail call void @simPutPixel(i32 noundef %29, i32 noundef %16, i32 noundef %27) #5
+  %30 = icmp eq i64 %21, 447
+  %31 = select i1 %30, i1 %15, i1 false
+  br i1 %31, label %32, label %34
 
-31:                                               ; preds = %24, %33
-  %32 = phi i64 [ %34, %33 ], [ 448, %24 ]
-  br label %19, !llvm.loop !13
+32:                                               ; preds = %25, %34
+  %33 = phi i64 [ %35, %34 ], [ 448, %25 ]
+  br label %20, !llvm.loop !12
 
-33:                                               ; preds = %24
-  %34 = add nuw nsw i64 %20, 1
-  %35 = getelementptr inbounds nuw [256 x [512 x i32]], ptr %1, i64 0, i64 %11, i64 %34
-  %36 = load i32, ptr %35, align 4, !tbaa !6
-  store i32 %36, ptr %25, align 4, !tbaa !6
-  br label %31
+34:                                               ; preds = %25
+  %35 = add nuw nsw i64 %21, 1
+  %36 = getelementptr inbounds nuw [256 x [512 x i32]], ptr %1, i64 0, i64 %12, i64 %35
+  %37 = load i32, ptr %36, align 4, !tbaa !6
+  store i32 %37, ptr %26, align 4, !tbaa !6
+  br label %32
 
-37:                                               ; preds = %16
-  %38 = call i32 @generateNewBarrier(i32 noundef 512, i32 noundef 256, ptr noundef nonnull %1) #8
-  %39 = tail call i32 @simMin(i32 noundef %7, i32 noundef %38) #6
-  %40 = sext i32 %39 to i64
-  br label %41
+38:                                               ; preds = %17
+  %39 = tail call i32 @simRand() #5
+  %40 = srem i32 %39, 246
+  %41 = sext i32 %40 to i64
+  br label %42
 
-41:                                               ; preds = %49, %37
-  %42 = phi i64 [ %51, %49 ], [ %40, %37 ]
-  %43 = tail call i32 @simMax(i32 noundef %7, i32 noundef %38) #6
-  %44 = sext i32 %43 to i64
-  %45 = icmp slt i64 %42, %44
-  br i1 %45, label %49, label %46
+42:                                               ; preds = %53, %38
+  %43 = phi i64 [ %54, %53 ], [ 0, %38 ]
+  %44 = icmp eq i64 %43, 256
+  br i1 %44, label %55, label %45
 
-46:                                               ; preds = %41
-  %47 = sext i32 %38 to i64
-  %48 = getelementptr inbounds [256 x [512 x i32]], ptr %1, i64 0, i64 %47, i64 447
-  store i32 16763144, ptr %48, align 4, !tbaa !6
-  br label %52
+45:                                               ; preds = %42
+  %46 = trunc i64 %43 to i32
+  %47 = sub i32 %40, %46
+  %48 = tail call i32 @simAbs(i32 noundef %47) #5
+  %49 = icmp sgt i32 %48, 35
+  br i1 %49, label %50, label %53
 
-49:                                               ; preds = %41
-  %50 = getelementptr inbounds [256 x [512 x i32]], ptr %1, i64 0, i64 %42, i64 447
-  store i32 16763144, ptr %50, align 4, !tbaa !6
-  %51 = add nsw i64 %42, 1
-  br label %41, !llvm.loop !14
+50:                                               ; preds = %45
+  %51 = shl i64 %43, 11
+  %52 = getelementptr i8, ptr %6, i64 %51
+  store i32 7522568, ptr %52, align 4, !tbaa !6
+  br label %53
 
-52:                                               ; preds = %46, %16
-  %53 = phi i32 [ %38, %46 ], [ %7, %16 ]
-  tail call void @simFlush() #6
-  %54 = add nuw nsw i32 %8, 1
-  br label %6
+53:                                               ; preds = %50, %45
+  %54 = add nuw nsw i64 %43, 1
+  br label %42, !llvm.loop !13
+
+55:                                               ; preds = %42
+  %56 = tail call i32 @simMin(i32 noundef %8, i32 noundef %40) #5
+  %57 = sext i32 %56 to i64
+  br label %58
+
+58:                                               ; preds = %65, %55
+  %59 = phi i64 [ %67, %65 ], [ %57, %55 ]
+  %60 = tail call i32 @simMax(i32 noundef %8, i32 noundef %40) #5
+  %61 = sext i32 %60 to i64
+  %62 = icmp slt i64 %59, %61
+  br i1 %62, label %65, label %63
+
+63:                                               ; preds = %58
+  %64 = getelementptr inbounds [256 x [512 x i32]], ptr %1, i64 0, i64 %41, i64 447
+  store i32 16763144, ptr %64, align 4, !tbaa !6
+  br label %68
+
+65:                                               ; preds = %58
+  %66 = getelementptr inbounds [256 x [512 x i32]], ptr %1, i64 0, i64 %59, i64 447
+  store i32 16763144, ptr %66, align 4, !tbaa !6
+  %67 = add nsw i64 %59, 1
+  br label %58, !llvm.loop !14
+
+68:                                               ; preds = %63, %17
+  %69 = phi i32 [ %40, %63 ], [ %8, %17 ]
+  tail call void @simFlush() #5
+  %70 = add nuw nsw i32 %9, 1
+  br label %7
 }
 
+; Function Attrs: mustprogress nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.lifetime.start.p0(i64 immarg, ptr nocapture) #1
+
 ; Function Attrs: mustprogress nocallback nofree nounwind willreturn memory(argmem: write)
-declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #4
+declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #2
 
 ; Function Attrs: minsize optsize
-declare void @simPutPixel(i32 noundef, i32 noundef, i32 noundef) local_unnamed_addr #1
+declare void @simPutPixel(i32 noundef, i32 noundef, i32 noundef) local_unnamed_addr #3
 
 ; Function Attrs: minsize optsize
-declare i32 @simMin(i32 noundef, i32 noundef) local_unnamed_addr #1
+declare i32 @simMin(i32 noundef, i32 noundef) local_unnamed_addr #3
 
 ; Function Attrs: minsize optsize
-declare i32 @simMax(i32 noundef, i32 noundef) local_unnamed_addr #1
+declare i32 @simMax(i32 noundef, i32 noundef) local_unnamed_addr #3
 
 ; Function Attrs: minsize optsize
-declare void @simFlush(...) local_unnamed_addr #1
+declare void @simFlush(...) local_unnamed_addr #3
 
-; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
-declare i32 @llvm.smax.i32(i32, i32) #5
+; Function Attrs: minsize optsize
+declare i32 @simRand(...) local_unnamed_addr #3
 
-attributes #0 = { minsize nounwind optsize ssp uwtable(sync) "frame-pointer"="non-leaf" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="apple-m1" "target-features"="+aes,+altnzcv,+ccdp,+ccidx,+ccpp,+complxnum,+crc,+dit,+dotprod,+flagm,+fp-armv8,+fp16fml,+fptoint,+fullfp16,+jsconv,+lse,+neon,+pauth,+perfmon,+predres,+ras,+rcpc,+rdm,+sb,+sha2,+sha3,+specrestrict,+ssbs,+v8.1a,+v8.2a,+v8.3a,+v8.4a,+v8a,+zcm,+zcz" }
-attributes #1 = { minsize optsize "frame-pointer"="non-leaf" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="apple-m1" "target-features"="+aes,+altnzcv,+ccdp,+ccidx,+ccpp,+complxnum,+crc,+dit,+dotprod,+flagm,+fp-armv8,+fp16fml,+fptoint,+fullfp16,+jsconv,+lse,+neon,+pauth,+perfmon,+predres,+ras,+rcpc,+rdm,+sb,+sha2,+sha3,+specrestrict,+ssbs,+v8.1a,+v8.2a,+v8.3a,+v8.4a,+v8a,+zcm,+zcz" }
-attributes #2 = { mustprogress nocallback nofree nosync nounwind willreturn memory(argmem: readwrite) }
-attributes #3 = { minsize noreturn nounwind optsize ssp uwtable(sync) "frame-pointer"="non-leaf" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="apple-m1" "target-features"="+aes,+altnzcv,+ccdp,+ccidx,+ccpp,+complxnum,+crc,+dit,+dotprod,+flagm,+fp-armv8,+fp16fml,+fptoint,+fullfp16,+jsconv,+lse,+neon,+pauth,+perfmon,+predres,+ras,+rcpc,+rdm,+sb,+sha2,+sha3,+specrestrict,+ssbs,+v8.1a,+v8.2a,+v8.3a,+v8.4a,+v8a,+zcm,+zcz" }
-attributes #4 = { mustprogress nocallback nofree nounwind willreturn memory(argmem: write) }
-attributes #5 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
-attributes #6 = { minsize nounwind optsize }
-attributes #7 = { nounwind }
-attributes #8 = { minsize optsize }
+; Function Attrs: minsize optsize
+declare i32 @simAbs(i32 noundef) local_unnamed_addr #3
+
+attributes #0 = { minsize noreturn nounwind optsize ssp uwtable(sync) "frame-pointer"="non-leaf" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="apple-m1" "target-features"="+aes,+altnzcv,+ccdp,+ccidx,+ccpp,+complxnum,+crc,+dit,+dotprod,+flagm,+fp-armv8,+fp16fml,+fptoint,+fullfp16,+jsconv,+lse,+neon,+pauth,+perfmon,+predres,+ras,+rcpc,+rdm,+sb,+sha2,+sha3,+specrestrict,+ssbs,+v8.1a,+v8.2a,+v8.3a,+v8.4a,+v8a,+zcm,+zcz" }
+attributes #1 = { mustprogress nocallback nofree nosync nounwind willreturn memory(argmem: readwrite) }
+attributes #2 = { mustprogress nocallback nofree nounwind willreturn memory(argmem: write) }
+attributes #3 = { minsize optsize "frame-pointer"="non-leaf" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="apple-m1" "target-features"="+aes,+altnzcv,+ccdp,+ccidx,+ccpp,+complxnum,+crc,+dit,+dotprod,+flagm,+fp-armv8,+fp16fml,+fptoint,+fullfp16,+jsconv,+lse,+neon,+pauth,+perfmon,+predres,+ras,+rcpc,+rdm,+sb,+sha2,+sha3,+specrestrict,+ssbs,+v8.1a,+v8.2a,+v8.3a,+v8.4a,+v8a,+zcm,+zcz" }
+attributes #4 = { nounwind }
+attributes #5 = { minsize nounwind optsize }
 
 !llvm.module.flags = !{!0, !1, !2, !3, !4}
 !llvm.ident = !{!5}

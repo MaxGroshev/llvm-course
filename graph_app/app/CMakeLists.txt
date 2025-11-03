@@ -8,6 +8,7 @@ target_compile_options(${PROJECT_NAME} PUBLIC
     -fpass-plugin=${PASS_OUTPUT}
 )
 
+
 set(LLVM_OPT_LEVEL -Oz)
 add_custom_target(
     get_app_ir

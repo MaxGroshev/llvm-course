@@ -1,10 +1,10 @@
 #include "main_ability.h"
 
-int getBarrierCenter() {
+inline __attribute__((always_inline)) int getBarrierCenter() {
     return simRand() % (SIM_Y_SIZE - 10); // -10 to always stay inside the borders
 }
 
-int generateNewBarrier(int x_max, int y_max, int scene[][x_max]) {
+inline __attribute__((always_inline)) int generateNewBarrier(int x_max, int y_max, int scene[][x_max]) {
     const int gateSize = SIM_Y_SIZE / 7;
     int barColor  = 0x72C908; // #72C908
     int barCenter = getBarrierCenter();
