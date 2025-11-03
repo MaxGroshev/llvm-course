@@ -1,16 +1,13 @@
-#ifndef SIM_H
-#define SIM_H
+#pragma once
 
-#define SIM_X_SIZE 1536//512
-#define SIM_Y_SIZE 768//256
+static const int SIM_X_SIZE = 512;
+static const int SIM_Y_SIZE = 256;
 
-#ifndef __sim__
 void simInit();
-void app();
 void simExit();
 void simFlush();
 void simPutPixel(int x, int y, int argb);
-int simRand(void);
-#endif // __sim__
-
-#endif // SIM_H
+int simRand();
+int simAbs(int x);
+int simMax(int x, int y);
+int simMin(int x, int y);

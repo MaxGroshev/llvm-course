@@ -1,10 +1,11 @@
 #include <stdlib.h>
 #include <assert.h>
-#include <SDL.h>
 #include <time.h>
+#include <SDL.h>
+
 #include "sim.h"
 
-#define FRAME_TICKS 30
+static const int frameTicks = 16;
 
 static SDL_Renderer *Renderer = NULL;
 static SDL_Window *Window = NULL;
@@ -38,10 +39,10 @@ void simFlush()
 {
     SDL_PumpEvents();
     assert(SDL_TRUE != SDL_HasEvent(SDL_QUIT) && "User-requested quit");
-    Uint32 cur_ticks = SDL_GetTicks() - Ticks;
-    if (cur_ticks < FRAME_TICKS)
+    Uint32 curTicks = SDL_GetTicks() - Ticks;
+    if (curTicks < frameTicks)
     {
-        SDL_Delay(FRAME_TICKS - cur_ticks);
+        SDL_Delay(frameTicks - curTicks);
     }
     SDL_RenderPresent(Renderer);
 }
@@ -62,4 +63,16 @@ void simPutPixel(int x, int y, int argb)
 int simRand()
 {
     return rand();
+}
+
+int simAbs(int x) {
+    return x > 0 ? x : -x; 
+}
+
+int simMax(int x, int y) {
+    return x > y ? x : y;    
+}
+
+int simMin(int x, int y) {
+    return x > y ? y : x;    
 }
