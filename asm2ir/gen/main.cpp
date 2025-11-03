@@ -5,7 +5,7 @@ int main(int argc, char **argv) {
         llvm::errs() << "ERROR: Not defined IR output\n";
         return 1;
     }
-    
+
     asm2ir ir;
     ir.initBB(argc, argv);
     ir.parseInstr(argc, argv);

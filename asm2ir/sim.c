@@ -1,7 +1,7 @@
-#include <stdlib.h>
-#include <assert.h>
-#include <time.h>
 #include <SDL.h>
+#include <assert.h>
+#include <stdlib.h>
+#include <time.h>
 
 #include "sim.h"
 
@@ -11,8 +11,7 @@ static SDL_Renderer *Renderer = NULL;
 static SDL_Window *Window = NULL;
 static Uint32 Ticks = 0;
 
-void simInit()
-{
+void simInit() {
     SDL_Init(SDL_INIT_VIDEO);
     SDL_CreateWindowAndRenderer(SIM_X_SIZE, SIM_Y_SIZE, 0, &Window, &Renderer);
     SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 0);
@@ -22,11 +21,9 @@ void simInit()
     simFlush();
 }
 
-void simExit()
-{
+void simExit() {
     SDL_Event event;
-    while (1)
-    {
+    while (1) {
         if (SDL_PollEvent(&event) && event.type == SDL_QUIT)
             break;
     }
@@ -35,20 +32,17 @@ void simExit()
     SDL_Quit();
 }
 
-void simFlush()
-{
+void simFlush() {
     SDL_PumpEvents();
     assert(SDL_TRUE != SDL_HasEvent(SDL_QUIT) && "User-requested quit");
     Uint32 curTicks = SDL_GetTicks() - Ticks;
-    if (curTicks < frameTicks)
-    {
+    if (curTicks < frameTicks) {
         SDL_Delay(frameTicks - curTicks);
     }
     SDL_RenderPresent(Renderer);
 }
 
-void simPutPixel(int x, int y, int argb)
-{
+void simPutPixel(int x, int y, int argb) {
     assert(0 <= x && x < SIM_X_SIZE && "Out of range");
     assert(0 <= y && y < SIM_Y_SIZE && "Out of range");
     Uint8 a = argb >> 24;
@@ -60,19 +54,10 @@ void simPutPixel(int x, int y, int argb)
     Ticks = SDL_GetTicks();
 }
 
-int simRand()
-{
-    return rand();
-}
+int simRand() { return rand(); }
 
-int simAbs(int x) {
-    return x > 0 ? x : -x; 
-}
+int simAbs(int x) { return x > 0 ? x : -x; }
 
-int simMax(int x, int y) {
-    return x > y ? x : y;    
-}
+int simMax(int x, int y) { return x > y ? x : y; }
 
-int simMin(int x, int y) {
-    return x > y ? y : x;    
-}
+int simMin(int x, int y) { return x > y ? y : x; }
