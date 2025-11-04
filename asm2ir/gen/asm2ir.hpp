@@ -52,17 +52,35 @@ class asm2ir {
 
         outs() << "\n#[FILE]:\nBBs:";
         while (input >> name) {
-            if (!name.compare("XOR") || !name.compare("MUL") ||
-                !name.compare("SUBi") || !name.compare("PUT_PIXEL") ||
-                !name.compare("INC_NEi")) {
+            if (!name.compare("ALLOCA_2DEM") || !name.compare("SREM") ||
+                !name.compare("GETELEMPTRi") || !name.compare("GETELEMPTR") || !name.compare("ADDi") ||
+                !name.compare("CMP_EQ") || !name.compare("CMP_SGT") || !name.compare("CMP_SLT") || 
+                !name.compare("BR_COND") || !name.compare("AND") || !name.compare("SHL") ||
+                !name.compare("PUT_PIXEL") || !name.compare("SIM_MAX") || !name.compare("SIM_MIN") ||
+                !name.compare("SUB")) {
                 input >> arg >> arg >> arg;
                 continue;
             }
-            if (!name.compare("BR_COND")) {
+            if (!name.compare("SIM_RAND") || !name.compare("BR")) {
+                input >> arg;
+                continue;
+            }
+            if (!name.compare("SELECT")) {
+                input >> arg >> arg >> arg >> arg;
+                continue;
+            }
+            if(!name.compare("GETELEMPTR_2DEMi") || !name.compare("GETELEMPTR_2DEM")) {
+                input >> arg >> arg >> arg >> arg >> arg >> arg >> arg;
+                continue;
+            }
+            if (!name.compare("SEXT") || !name.compare("ST") ||
+                !name.compare("MOV") || !name.compare("MOVi") || !name.compare("ZEXT") ||
+                !name.compare("TRUNC") || !name.compare("LD") || !name.compare("ST") || 
+                !name.compare("SIM_ABS")) {
                 input >> arg >> arg;
                 continue;
             }
-            if (!name.compare("EXIT") || !name.compare("FLUSH")) {
+            if (!name.compare("EXIT") || !name.compare("SIM_FLUSH")) {
                 continue;
             }
 
@@ -88,6 +106,7 @@ class asm2ir {
         input.open(argv[1]);
 
         while (input >> name) {
+            std::cout << std::endl;
             if (!name.compare("EXIT")) {
                 outs() << "\tEXIT\n";
                 builder.CreateRetVoid();
@@ -119,7 +138,7 @@ class asm2ir {
                 continue;
             }
             if (!name.compare("SIM_ABS")) {
-                handleSimMin(input, name, arg);
+                handleSimAbs(input, name, arg);
                 continue;
             }
 
@@ -151,12 +170,16 @@ class asm2ir {
                 handleMovi(input, name, arg);
                 continue;
             }
+            if (!name.compare("AND")) {
+                handleAndi(input, name, arg);
+                continue;
+            }
             if (!name.compare("SREM")) {
                 handleSremi(input, name, arg);
                 continue;
             }
             if (!name.compare("SEXT")) {
-                handleSremi(input, name, arg);
+                handleSext(input, name, arg);
                 continue;
             }
             if (!name.compare("ZEXT")) {
@@ -168,7 +191,19 @@ class asm2ir {
                 continue;
             }
             if (!name.compare("GETELEMPTR_2DEM")) {
+                handleGetelemptr2d(input, name, arg);
+                continue;
+            }
+            if (!name.compare("GETELEMPTR_2DEMi")) {
+                handleGetelemptr2di(input, name, arg);
+                continue;
+            }
+            if (!name.compare("GETELEMPTR")) {
                 handleGetelemptr(input, name, arg);
+                continue;
+            }
+            if (!name.compare("GETELEMPTRi")) {
+                handleGetelemptri(input, name, arg);
                 continue;
             }
             if (!name.compare("ST")) {
@@ -204,10 +239,10 @@ class asm2ir {
                 continue;
             }
 
-            if (builder.GetInsertBlock()) {
-                builder.CreateBr(BBMap[name]);
-                outs() << "\tbranch to " << name << '\n';
-            }
+            // if (builder.GetInsertBlock()) {
+            //     builder.CreateBr(BBMap[name]);
+            //     outs() << "\tbranch to " << name << '\n';
+            // }
             outs() << "BB " << name << '\n';
             builder.SetInsertPoint(BBMap[name]);
         }
@@ -235,6 +270,21 @@ class asm2ir {
             }
             if (fnName == "_simPutPixel") {
                 return reinterpret_cast<void *>(simPutPixel);
+            }
+            if (fnName == "_simRand") {
+                return reinterpret_cast<void *>(simRand);
+            }
+            // if (fnName == "_bzero") {
+            //     return reinterpret_cast<void *>(llvm::Intrinsic::memset);
+            // }
+            if (fnName == "_simAbs") {
+                return reinterpret_cast<void *>(simAbs);
+            }
+            if (fnName == "_simMax") {
+                return reinterpret_cast<void *>(simMax);
+            }
+            if (fnName == "_simMin") {
+                return reinterpret_cast<void *>(simMin);
             }
             return nullptr;
         });
@@ -271,7 +321,13 @@ class asm2ir {
                       std::string &arg);
     void handleSremi(std::ifstream &input, std::string &name, std::string &arg);
     void handleSext(std::ifstream &input, std::string &name, std::string &arg);
+    void handleGetelemptr2d(std::ifstream &input, std::string &name,
+                          std::string &arg);
+    void handleGetelemptr2di(std::ifstream &input, std::string &name,
+                          std::string &arg);
     void handleGetelemptr(std::ifstream &input, std::string &name,
+                          std::string &arg);
+    void handleGetelemptri(std::ifstream &input, std::string &name,
                           std::string &arg);
     void handleSt(std::ifstream &input, std::string &name, std::string &arg);
     void handleZext(std::ifstream &input, std::string &name, std::string &arg);
@@ -294,6 +350,7 @@ class asm2ir {
     std::unique_ptr<Module> module;
     IRBuilder<> builder;
     GlobalVariable *regFile;
+    llvm::Value *arrayPtrStorage;
 
     Type *voidType;
     Type *int32Type;

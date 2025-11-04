@@ -9,8 +9,8 @@ int main(int argc, char **argv) {
     asm2ir ir;
     ir.initBB(argc, argv);
     ir.parseInstr(argc, argv);
-    // ir.verify();
-    // ir.runCode();
+    ir.verify();
+    ir.runCode();
 
     return 0;
 }
