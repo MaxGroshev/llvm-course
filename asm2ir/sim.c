@@ -43,7 +43,6 @@ void simFlush() {
 }
 
 void simPutPixel(int x, int y, int argb) {
-    printf("%d\n",x);
     assert(0 <= x && x < SIM_X_SIZE && "Out of range");
     assert(0 <= y && y < SIM_Y_SIZE && "Out of range");
     Uint8 a = argb >> 24;

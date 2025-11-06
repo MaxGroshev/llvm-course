@@ -23,13 +23,22 @@ class asm2ir {
         module = std::unique_ptr<Module>(new Module{"top", context});
         voidType = Type::getVoidTy(context);
         int32Type = Type::getInt32Ty(context);
-        //[32 x i32] regFile = {0, 0, 0, 0}
+
         regFileType = ArrayType::get(int32Type, REG_FILE_SIZE);
         regFile = new GlobalVariable(*module, regFileType, false,
                                      GlobalValue::PrivateLinkage, 0, "regFile");
         regFile->setInitializer(ConstantAggregateZero::get(regFileType));
 
-        // declare void @main()
+        ArrayType *innerArrayType =
+            ArrayType::get(Type::getInt32Ty(context), 512);
+        ArrayType *outerArrayType = ArrayType::get(innerArrayType, 256);
+        // arrayPtrStorage = ArrayType::get(int32Type, REG_FILE_SIZE);
+        arrayPtrStorage = new GlobalVariable(*module, outerArrayType, false,
+                                             GlobalValue::PrivateLinkage, 0,
+                                             "arrayPtrStorage");
+        arrayPtrStorage->setInitializer(
+            ConstantAggregateZero::get(regFileType));
+
         funcType = FunctionType::get(voidType, false);
         mainFunc = Function::Create(funcType, Function::ExternalLinkage, "main",
                                     module.get());
@@ -53,11 +62,13 @@ class asm2ir {
         outs() << "\n#[FILE]:\nBBs:";
         while (input >> name) {
             if (!name.compare("ALLOCA_2DEM") || !name.compare("SREM") ||
-                !name.compare("GETELEMPTRi") || !name.compare("GETELEMPTR") || !name.compare("ADDi") ||
-                !name.compare("CMP_EQ") || !name.compare("CMP_SGT") || !name.compare("CMP_SLT") || 
-                !name.compare("BR_COND") || !name.compare("AND") || !name.compare("SHL") ||
-                !name.compare("PUT_PIXEL") || !name.compare("SIM_MAX") || !name.compare("SIM_MIN") ||
-                !name.compare("SUB")) {
+                !name.compare("GETELEMPTRi") || !name.compare("GETELEMPTR") ||
+                !name.compare("ADDi") || !name.compare("CMP_EQ") ||
+                !name.compare("CMP_SGT") || !name.compare("CMP_SLT") ||
+                !name.compare("BR_COND") || !name.compare("AND") ||
+                !name.compare("SHL") || !name.compare("PUT_PIXEL") ||
+                !name.compare("SIM_MAX") || !name.compare("SIM_MIN") ||
+                !name.compare("SUB") || !name.compare("ST_BT_OFFSET")) {
                 input >> arg >> arg >> arg;
                 continue;
             }
@@ -69,13 +80,15 @@ class asm2ir {
                 input >> arg >> arg >> arg >> arg;
                 continue;
             }
-            if(!name.compare("GETELEMPTR_2DEMi") || !name.compare("GETELEMPTR_2DEM")) {
-                input >> arg >> arg >> arg >> arg >> arg >> arg >> arg;
+            if (!name.compare("GETELEMPTR_2DEMi") ||
+                !name.compare("GETELEMPTR_2DEM") || !name.compare("ST") ||
+                !name.compare("LD") || !name.compare("STi")) {
+                input >> arg >> arg >> arg >> arg >> arg >> arg;
                 continue;
             }
-            if (!name.compare("SEXT") || !name.compare("ST") ||
-                !name.compare("MOV") || !name.compare("MOVi") || !name.compare("ZEXT") ||
-                !name.compare("TRUNC") || !name.compare("LD") || !name.compare("ST") || 
+            if (!name.compare("SEXT") || !name.compare("MOV") ||
+                !name.compare("MOVi") || !name.compare("ZEXT") ||
+                !name.compare("TRUNC") || !name.compare("ST") ||
                 !name.compare("SIM_ABS")) {
                 input >> arg >> arg;
                 continue;
@@ -97,23 +110,13 @@ class asm2ir {
         std::string name;
         std::string arg;
 
-        // declare void @simFlush(...)
-        FunctionType *simFlushType = FunctionType::get(voidType, false);
-        FunctionCallee simFlushFunc =
-            module->getOrInsertFunction("simFlush", simFlushType);
-
         std::ifstream input;
         input.open(argv[1]);
 
         while (input >> name) {
             std::cout << std::endl;
             if (!name.compare("EXIT")) {
-                outs() << "\tEXIT\n";
-                builder.CreateRetVoid();
-                if (input >> name) {
-                    outs() << "BB " << name << '\n';
-                    builder.SetInsertPoint(BBMap[name]);
-                }
+                handleExit(input, name, arg);
                 continue;
             }
             if (!name.compare("PUT_PIXEL")) {
@@ -121,8 +124,7 @@ class asm2ir {
                 continue;
             }
             if (!name.compare("SIM_FLUSH")) {
-                outs() << "\tFLUSH\n";
-                builder.CreateCall(simFlushFunc);
+                handleSimFlush(input, name, arg);
                 continue;
             }
             if (!name.compare("SIM_RAND")) {
@@ -190,12 +192,8 @@ class asm2ir {
                 handleTrunc(input, name, arg);
                 continue;
             }
-            if (!name.compare("GETELEMPTR_2DEM")) {
-                handleGetelemptr2d(input, name, arg);
-                continue;
-            }
-            if (!name.compare("GETELEMPTR_2DEMi")) {
-                handleGetelemptr2di(input, name, arg);
+            if (!name.compare("ST_BT_OFFSET")) {
+                handleStBtOffset(input, name, arg);
                 continue;
             }
             if (!name.compare("GETELEMPTR")) {
@@ -208,6 +206,10 @@ class asm2ir {
             }
             if (!name.compare("ST")) {
                 handleSt(input, name, arg);
+                continue;
+            }
+            if (!name.compare("STi")) {
+                handleSti(input, name, arg);
                 continue;
             }
             if (!name.compare("LD")) {
@@ -239,10 +241,6 @@ class asm2ir {
                 continue;
             }
 
-            // if (builder.GetInsertBlock()) {
-            //     builder.CreateBr(BBMap[name]);
-            //     outs() << "\tbranch to " << name << '\n';
-            // }
             outs() << "BB " << name << '\n';
             builder.SetInsertPoint(BBMap[name]);
         }
@@ -274,9 +272,9 @@ class asm2ir {
             if (fnName == "_simRand") {
                 return reinterpret_cast<void *>(simRand);
             }
-            // if (fnName == "_bzero") {
-            //     return reinterpret_cast<void *>(llvm::Intrinsic::memset);
-            // }
+            if (fnName == "_memset") {
+                return reinterpret_cast<void *>(llvm::Intrinsic::memset);
+            }
             if (fnName == "_simAbs") {
                 return reinterpret_cast<void *>(simAbs);
             }
@@ -312,6 +310,9 @@ class asm2ir {
                       std::string &arg);
     void handleSimAbs(std::ifstream &input, std::string &name,
                       std::string &arg);
+    void handleSimFlush(std::ifstream &input, std::string &name,
+                        std::string &arg);
+    void handleExit(std::ifstream &input, std::string &name, std::string &arg);
 
     void handleBrCond(std::ifstream &input, std::string &name,
                       std::string &arg);
@@ -321,15 +322,14 @@ class asm2ir {
                       std::string &arg);
     void handleSremi(std::ifstream &input, std::string &name, std::string &arg);
     void handleSext(std::ifstream &input, std::string &name, std::string &arg);
-    void handleGetelemptr2d(std::ifstream &input, std::string &name,
-                          std::string &arg);
-    void handleGetelemptr2di(std::ifstream &input, std::string &name,
+    void handleStBtOffset(std::ifstream &input, std::string &name,
                           std::string &arg);
     void handleGetelemptr(std::ifstream &input, std::string &name,
                           std::string &arg);
     void handleGetelemptri(std::ifstream &input, std::string &name,
-                          std::string &arg);
+                           std::string &arg);
     void handleSt(std::ifstream &input, std::string &name, std::string &arg);
+    void handleSti(std::ifstream &input, std::string &name, std::string &arg);
     void handleZext(std::ifstream &input, std::string &name, std::string &arg);
     void handleCmpEq(std::ifstream &input, std::string &name, std::string &arg);
     void handleCmpSlt(std::ifstream &input, std::string &name,
@@ -350,14 +350,14 @@ class asm2ir {
     std::unique_ptr<Module> module;
     IRBuilder<> builder;
     GlobalVariable *regFile;
-    llvm::Value *arrayPtrStorage;
+    GlobalVariable *arrayPtrStorage;
 
     Type *voidType;
     Type *int32Type;
     FunctionType *funcType;
     ArrayType *regFileType;
 
-    Function *mainFunc; // remove from here
+    Function *mainFunc;
 
     std::unordered_map<std::string, BasicBlock *> BBMap;
 };
