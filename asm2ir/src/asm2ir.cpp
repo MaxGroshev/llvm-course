@@ -1,6 +1,129 @@
 #include "./asm2ir.hpp"
 #include <cassert>
 
+void asm2ir::dispathAndHandleInstruction(std::ifstream &input, std::string &name, std::string &arg)
+{
+    if (!name.compare("EXIT")) {
+        handleExit(input, name, arg);
+        return;
+
+    } else if (!name.compare("PUT_PIXEL")) {
+        handlePutPixel(input, name, arg);
+        return;
+
+    } else if (!name.compare("SIM_FLUSH")) {
+        handleSimFlush(input, name, arg);
+        return;
+
+    } else if (!name.compare("SIM_RAND")) {
+        handleSimRand(input, name, arg);
+        return;
+
+    } else if (!name.compare("SIM_MAX")) {
+        handleSimMax(input, name, arg);
+        return;
+
+    } else if (!name.compare("SIM_MIN")) {
+        handleSimMin(input, name, arg);
+        return;
+
+    } else if (!name.compare("SIM_ABS")) {
+        handleSimAbs(input, name, arg);
+        return;
+
+    }
+
+    else if (!name.compare("SUB")) {
+        handleSub(input, name, arg);
+        return;
+
+    } else if (!name.compare("ADDi")) {
+        handleAddi(input, name, arg);
+        return;
+
+    } else if (!name.compare("BR_COND")) {
+        handleBrCond(input, name, arg);
+        return;
+
+    } else if (!name.compare("BR")) {
+        handleBr(input, name, arg);
+        return;
+
+    } else if (!name.compare("ANDi")) {
+        handleAndi(input, name, arg);
+        return;
+
+    } else if (!name.compare("MOV")) {
+        handleMov(input, name, arg);
+        return;
+
+    } else if (!name.compare("MOVi")) {
+        handleMovi(input, name, arg);
+        return;
+    } else if (!name.compare("AND")) {
+        handleAndi(input, name, arg);
+        return;
+
+    } else if (!name.compare("SREM")) {
+        handleSremi(input, name, arg);
+        return;
+
+    } else if (!name.compare("SEXT")) {
+        handleSext(input, name, arg);
+        return;
+
+    } else if (!name.compare("ZEXT")) {
+        handleZext(input, name, arg);
+        return;
+
+    } else if (!name.compare("TRUNC")) {
+        handleTrunc(input, name, arg);
+        return;
+
+    } else if (!name.compare("ST_BT_OFFSET")) {
+        handleStBtOffset(input, name, arg);
+        return;
+
+    } else if (!name.compare("ST")) {
+        handleSt(input, name, arg);
+        return;
+
+    } else if (!name.compare("STi")) {
+        handleSti(input, name, arg);
+        return;
+
+    } else if (!name.compare("LD")) {
+        handleLd(input, name, arg);
+        return;
+
+    } else if (!name.compare("SELECT")) {
+        handleSelect(input, name, arg);
+        return;
+
+    } else if (!name.compare("CMP_EQ")) {
+        handleCmpEq(input, name, arg);
+        return;
+
+    } else if (!name.compare("CMP_SGT")) {
+        handleCmpSgt(input, name, arg);
+        return;
+
+    } else if (!name.compare("CMP_SLT")) {
+        handleCmpSlt(input, name, arg);
+        return;
+
+    } else if (!name.compare("ALLOCA")) {
+        handleAlloca(input, name, arg);
+        return;
+    } else if (!name.compare("SHL")) {
+        handleShli(input, name, arg);
+        return;
+    }
+    outs() << "BB " << name << '\n';
+    builder.SetInsertPoint(BBMap[name]);
+    return;
+}
+
 void asm2ir::handlePutPixel(std::ifstream &input, std::string &name, std::string &arg)
 {
     ArrayRef<Type *> simPutPixelParamTypes = {int32Type, int32Type, int32Type};
@@ -156,15 +279,15 @@ void asm2ir::handleAddi(std::ifstream &input, std::string &name, std::string &ar
 {
     input >> arg;
     outs() << "\t" << arg;
-    
+
     Value *res_p = builder.CreateConstGEP2_32(regFileType, regFile, 0, std::stoi(arg.substr(1)));
     input >> arg;
     outs() << " = " << arg;
-    
+
     Value *arg1_p = builder.CreateConstGEP2_32(regFileType, regFile, 0, std::stoi(arg.substr(1)));
     input >> arg;
     outs() << " + " << arg << '\n';
-    
+
     Value *arg2 = builder.getInt32(std::stoi(arg));
     Value *add_arg1_arg2 = builder.CreateAdd(builder.CreateLoad(int32Type, arg1_p), arg2);
     builder.CreateStore(add_arg1_arg2, res_p);
@@ -174,15 +297,15 @@ void asm2ir::handleAlloca(std::ifstream &input, std::string &name, std::string &
 {
     input >> arg;
     outs() << "\tAlloca: " << arg;
-    
+
     Value *res = builder.CreateConstGEP2_32(regFileType, regFile, 0, std::stoi(arg.substr(1)));
     input >> arg;
     outs() << " " << arg;
-    
+
     auto outer = std::stoi(arg);
     input >> arg;
     outs() << " * " << arg << '\n';
-    
+
     auto inner = std::stoi(arg);
     ArrayType *innerArrayType = ArrayType::get(Type::getInt32Ty(context), inner);
     ArrayType *outerArrayType = ArrayType::get(innerArrayType, outer);
@@ -202,9 +325,6 @@ void asm2ir::handleStBtOffset(std::ifstream &input, std::string &name, std::stri
     input >> arg;
     outs() << " * " << arg;
     auto off2 = builder.CreateConstGEP2_32(regFileType, regFile, 0, std::stoi(arg.substr(1)));
-
-    ArrayType *innerArrayType = ArrayType::get(Type::getInt32Ty(context), 512);
-    ArrayType *outerArrayType = ArrayType::get(innerArrayType, 256);
 
     auto mem =
         builder.CreateIntToPtr(builder.CreateLoad(builder.getInt64Ty(), src), builder.getPtrTy());
@@ -322,15 +442,15 @@ void asm2ir::handleSremi(std::ifstream &input, std::string &name, std::string &a
 {
     input >> arg;
     outs() << "\t" << arg;
-    
+
     Value *res_p = builder.CreateConstGEP2_32(regFileType, regFile, 0, std::stoi(arg.substr(1)));
     input >> arg;
     outs() << " = " << arg;
-    
+
     Value *arg1_p = builder.CreateConstGEP2_32(regFileType, regFile, 0, std::stoi(arg.substr(1)));
     input >> arg;
     outs() << " srem " << arg << '\n';
-    
+
     Value *arg2 = builder.getInt32(std::stoi(arg));
     Value *srem_arg1_arg2 = builder.CreateSRem(builder.CreateLoad(int32Type, arg1_p), arg2);
     builder.CreateStore(srem_arg1_arg2, res_p);
@@ -340,11 +460,11 @@ void asm2ir::handleSext(std::ifstream &input, std::string &name, std::string &ar
 {
     input >> arg;
     outs() << "\tsext: " << arg;
-    
+
     Value *res = builder.CreateConstGEP2_32(regFileType, regFile, 0, std::stoi(arg.substr(1)));
     input >> arg;
     outs() << " = " << arg;
-    
+
     Value *arg1 = builder.CreateConstGEP2_32(regFileType, regFile, 0, std::stoi(arg.substr(1)));
     auto int64Type = Type::getInt64Ty(context);
 
@@ -356,11 +476,11 @@ void asm2ir::handleZext(std::ifstream &input, std::string &name, std::string &ar
 {
     input >> arg;
     outs() << "\t" << arg;
-    
+
     Value *res = builder.CreateConstGEP2_32(regFileType, regFile, 0, std::stoi(arg.substr(1)));
     input >> arg;
     outs() << " = " << arg;
-    
+
     Value *arg1 = builder.CreateConstGEP2_32(regFileType, regFile, 0, std::stoi(arg.substr(1)));
     auto int64Type = Type::getInt64Ty(context);
 
@@ -372,15 +492,15 @@ void asm2ir::handleCmpEq(std::ifstream &input, std::string &name, std::string &a
 {
     input >> arg;
     outs() << "\t" << arg;
-    
+
     Value *res = builder.CreateConstGEP2_32(regFileType, regFile, 0, std::stoi(arg.substr(1)));
     input >> arg;
     outs() << " = " << arg;
-    
+
     Value *arg1 = builder.CreateConstGEP2_32(regFileType, regFile, 0, std::stoi(arg.substr(1)));
     input >> arg;
     outs() << " cmp " << arg << '\n';
-    
+
     if (arg.find("x") == std::string::npos) {
         Value *arg2 = builder.getInt32(std::stoi(arg));
         Value *cmp_arg1_arg2 = builder.CreateICmpEQ(builder.CreateLoad(int32Type, arg1), arg2);
@@ -398,11 +518,11 @@ void asm2ir::handleCmpSlt(std::ifstream &input, std::string &name, std::string &
 {
     input >> arg;
     outs() << "\t" << arg;
-    
+
     Value *res = builder.CreateConstGEP2_32(regFileType, regFile, 0, std::stoi(arg.substr(1)));
     input >> arg;
     outs() << " = " << arg;
-    
+
     Value *arg1 = builder.CreateConstGEP2_32(regFileType, regFile, 0, std::stoi(arg.substr(1)));
     input >> arg;
     outs() << " cmp " << arg << '\n';
@@ -417,15 +537,15 @@ void asm2ir::handleCmpSgt(std::ifstream &input, std::string &name, std::string &
 {
     input >> arg;
     outs() << "\t" << arg;
-    
+
     Value *res = builder.CreateConstGEP2_32(regFileType, regFile, 0, std::stoi(arg.substr(1)));
     input >> arg;
     outs() << " = " << arg;
-    
+
     Value *arg1 = builder.CreateConstGEP2_32(regFileType, regFile, 0, std::stoi(arg.substr(1)));
     input >> arg;
     outs() << " cmp " << arg << '\n';
-    
+
     Value *arg2 = builder.getInt32(std::stoi(arg));
     Value *cmp_arg1_arg2 = builder.CreateICmpSGT(builder.CreateLoad(int32Type, arg1), arg2);
     builder.CreateStore(cmp_arg1_arg2, res);
@@ -435,11 +555,11 @@ void asm2ir::handleTrunc(std::ifstream &input, std::string &name, std::string &a
 {
     input >> arg;
     outs() << "\tTrunc: " << arg << " ";
-    
+
     Value *res = builder.CreateConstGEP2_32(regFileType, regFile, 0, std::stoi(arg.substr(1)));
     input >> arg;
     outs() << " = " << arg;
-    
+
     Value *arg1 = builder.CreateConstGEP2_32(regFileType, regFile, 0, std::stoi(arg.substr(1)));
 
     Value *truncRes = builder.CreateTrunc(builder.CreateLoad(int32Type, arg1), int32Type);
@@ -457,16 +577,16 @@ void asm2ir::handleAndi(std::ifstream &input, std::string &name, std::string &ar
 {
     input >> arg;
     outs() << "\t" << arg;
-    
+
     Value *res_p = builder.CreateConstGEP2_32(regFileType, regFile, 0, std::stoi(arg.substr(1)));
     input >> arg;
     outs() << " = " << arg;
-    
+
     Value *arg1_p = builder.CreateConstGEP2_32(regFileType, regFile, 0, std::stoi(arg.substr(1)));
 
     input >> arg;
     outs() << " & " << arg << '\n';
-    
+
     Value *arg2 = builder.getInt32(std::stoi(arg));
     Value *and_arg1_arg2 = builder.CreateAnd(builder.CreateLoad(int32Type, arg1_p), arg2);
     builder.CreateStore(and_arg1_arg2, res_p);
@@ -476,13 +596,13 @@ void asm2ir::handleSelect(std::ifstream &input, std::string &name, std::string &
 {
     input >> arg;
     outs() << "\tSelect:" << arg;
-    
+
     Value *res_p =
         builder.CreateConstInBoundsGEP2_32(regFileType, regFile, 0, std::stoi(arg.substr(1)));
 
     input >> arg;
     outs() << " = " << arg;
-    
+
     Value *arg1 = builder.CreateConstGEP2_32(regFileType, regFile, 0, std::stoi(arg.substr(1)));
     Value *arg1_i1 = builder.CreateTrunc(builder.CreateLoad(int32Type, arg1), builder.getInt1Ty());
     input >> arg;
@@ -501,11 +621,11 @@ void asm2ir::handleMov(std::ifstream &input, std::string &name, std::string &arg
 {
     input >> arg;
     outs() << "\t" << arg;
-    
+
     Value *res_p = builder.CreateConstGEP2_32(regFileType, regFile, 0, std::stoi(arg.substr(1)));
     input >> arg;
     outs() << " <- " << arg;
-    
+
     Value *from = builder.CreateConstGEP2_32(regFileType, regFile, 0, std::stoi(arg.substr(1)));
 
     builder.CreateStore(builder.CreateLoad(int32Type, from), res_p);
@@ -515,11 +635,11 @@ void asm2ir::handleMovi(std::ifstream &input, std::string &name, std::string &ar
 {
     input >> arg;
     outs() << "\t" << arg;
-    
+
     Value *res_p = builder.CreateConstGEP2_32(regFileType, regFile, 0, std::stoi(arg.substr(1)));
     input >> arg;
     outs() << " <- " << arg;
-    
+
     Value *val = builder.getInt32(std::stoi(arg));
 
     builder.CreateStore(val, res_p);
@@ -529,15 +649,15 @@ void asm2ir::handleShli(std::ifstream &input, std::string &name, std::string &ar
 {
     input >> arg;
     outs() << "\t" << arg;
-    
+
     Value *res_p = builder.CreateConstGEP2_32(regFileType, regFile, 0, std::stoi(arg.substr(1)));
     input >> arg;
     outs() << " = " << arg;
-    
+
     Value *arg1_p = builder.CreateConstGEP2_32(regFileType, regFile, 0, std::stoi(arg.substr(1)));
     input >> arg;
     outs() << " shl " << arg << '\n';
-    
+
     Value *arg2 = builder.getInt32(std::stoi(arg));
     Value *shl_arg1_arg2 = builder.CreateShl(builder.CreateLoad(int32Type, arg1_p), arg2);
     builder.CreateStore(shl_arg1_arg2, res_p);

@@ -7,7 +7,9 @@
 #include "llvm/IR/Verifier.h"
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Support/raw_ostream.h"
+
 #include <fstream>
+#include <filesystem>
 #include <iostream>
 #include <unordered_map>
 
@@ -22,45 +24,69 @@ private:
     static constexpr int REG_FILE_SIZE = 64;
 
 public:
-    asm2ir() : builder(context)
+    asm2ir(int argc, char **argv) : builder(context)
     {
         module = std::unique_ptr<Module>(new Module {"top", context});
+
+        initSrcPath(argc, argv);
+        initBasicTypes();
+        initRegFile();
+        initMainFunc();
+    }
+
+private:
+    void initSrcPath(int argc, char **argv)
+    {
+        if (argc != 2) {
+            outs() << "[ERROR] Need 1 argument: file with assembler code\n";
+        }
+        asmSrcPath = argv[1];
+    }
+    void initBasicTypes()
+    {
         voidType = Type::getVoidTy(context);
         int32Type = Type::getInt32Ty(context);
+        int64Type = Type::getInt64Ty(context);
+    }
 
+    void initRegFile()
+    {
         regFileType = ArrayType::get(builder.getInt64Ty(), REG_FILE_SIZE);
         regFile = new GlobalVariable(*module, regFileType, false, GlobalValue::PrivateLinkage, 0,
                                      "regFile");
         regFile->setInitializer(ConstantAggregateZero::get(regFileType));
+    }
 
-        funcType = FunctionType::get(voidType, false);
+    void initMainFunc()
+    {
+        auto funcType = FunctionType::get(voidType, false);
         mainFunc = Function::Create(funcType, Function::ExternalLinkage, "main", module.get());
     }
 
-    int initBB(int argc, char **argv)
+    void openSrcInput()
     {
-        if (argc != 2) {
-            outs() << "[ERROR] Need 1 argument: file with assembler code\n";
-            return 1;
-        }
-        std::ifstream input;
-        input.open(argv[1]);
+        input.open(asmSrcPath);
         if (!input.is_open()) {
-            outs() << "[ERROR] Can't open " << argv[1] << '\n';
-            return 1;
+            outs() << "[ERROR] Can't open " << asmSrcPath << " " << __PRETTY_FUNCTION__ << '\n';
+            throw("Can not open file");
         }
+    }
 
+public:
+    int initBB()
+    {
+        openSrcInput();
         std::string name;
         std::string arg;
 
         outs() << "\n#[FILE]:\nBBs:";
         while (input >> name) {
-            if (!name.compare("ALLOCA") || !name.compare("SREM") ||
-                !name.compare("GETELEMPTRi") || !name.compare("GETELEMPTR") ||
-                !name.compare("ADDi") || !name.compare("CMP_EQ") || !name.compare("CMP_SGT") ||
-                !name.compare("CMP_SLT") || !name.compare("BR_COND") || !name.compare("AND") ||
-                !name.compare("SHL") || !name.compare("PUT_PIXEL") || !name.compare("SIM_MAX") ||
-                !name.compare("SIM_MIN") || !name.compare("SUB") || !name.compare("ST_BT_OFFSET")) {
+            if (!name.compare("ALLOCA") || !name.compare("SREM") || !name.compare("GETELEMPTRi") ||
+                !name.compare("GETELEMPTR") || !name.compare("ADDi") || !name.compare("CMP_EQ") ||
+                !name.compare("CMP_SGT") || !name.compare("CMP_SLT") || !name.compare("BR_COND") ||
+                !name.compare("AND") || !name.compare("SHL") || !name.compare("PUT_PIXEL") ||
+                !name.compare("SIM_MAX") || !name.compare("SIM_MIN") || !name.compare("SUB") ||
+                !name.compare("ST_BT_OFFSET")) {
                 input >> arg >> arg >> arg;
                 continue;
             }
@@ -90,142 +116,23 @@ public:
             BBMap[name] = BasicBlock::Create(context, name, mainFunc);
         }
         outs() << '\n';
-        input.close();
+
+        input.close();  // Bad make RAII
 
         return 0;
     }
 
-    void parseInstr(int argc, char **argv)
+    void parseInstr()
     {
+        openSrcInput();
         std::string name;
         std::string arg;
 
-        std::ifstream input;
-        input.open(argv[1]);
-
         while (input >> name) {
-            std::cout << std::endl;
-            if (!name.compare("EXIT")) {
-                handleExit(input, name, arg);
-                continue;
-            }
-            if (!name.compare("PUT_PIXEL")) {
-                handlePutPixel(input, name, arg);
-                continue;
-            }
-            if (!name.compare("SIM_FLUSH")) {
-                handleSimFlush(input, name, arg);
-                continue;
-            }
-            if (!name.compare("SIM_RAND")) {
-                handleSimRand(input, name, arg);
-                continue;
-            }
-            if (!name.compare("SIM_MAX")) {
-                handleSimMax(input, name, arg);
-                continue;
-            }
-            if (!name.compare("SIM_MIN")) {
-                handleSimMin(input, name, arg);
-                continue;
-            }
-            if (!name.compare("SIM_ABS")) {
-                handleSimAbs(input, name, arg);
-                continue;
-            }
-
-            if (!name.compare("SUB")) {
-                handleSub(input, name, arg);
-                continue;
-            }
-            if (!name.compare("ADDi")) {
-                handleAddi(input, name, arg);
-                continue;
-            }
-            if (!name.compare("BR_COND")) {
-                handleBrCond(input, name, arg);
-                continue;
-            }
-            if (!name.compare("BR")) {
-                handleBr(input, name, arg);
-                continue;
-            }
-            if (!name.compare("ANDi")) {
-                handleAndi(input, name, arg);
-                continue;
-            }
-            if (!name.compare("MOV")) {
-                handleMov(input, name, arg);
-                continue;
-            }
-            if (!name.compare("MOVi")) {
-                handleMovi(input, name, arg);
-                continue;
-            }
-            if (!name.compare("AND")) {
-                handleAndi(input, name, arg);
-                continue;
-            }
-            if (!name.compare("SREM")) {
-                handleSremi(input, name, arg);
-                continue;
-            }
-            if (!name.compare("SEXT")) {
-                handleSext(input, name, arg);
-                continue;
-            }
-            if (!name.compare("ZEXT")) {
-                handleZext(input, name, arg);
-                continue;
-            }
-            if (!name.compare("TRUNC")) {
-                handleTrunc(input, name, arg);
-                continue;
-            }
-            if (!name.compare("ST_BT_OFFSET")) {
-                handleStBtOffset(input, name, arg);
-                continue;
-            }
-            if (!name.compare("ST")) {
-                handleSt(input, name, arg);
-                continue;
-            }
-            if (!name.compare("STi")) {
-                handleSti(input, name, arg);
-                continue;
-            }
-            if (!name.compare("LD")) {
-                handleLd(input, name, arg);
-                continue;
-            }
-            if (!name.compare("SELECT")) {
-                handleSelect(input, name, arg);
-                continue;
-            }
-            if (!name.compare("CMP_EQ")) {
-                handleCmpEq(input, name, arg);
-                continue;
-            }
-            if (!name.compare("CMP_SGT")) {
-                handleCmpSgt(input, name, arg);
-                continue;
-            }
-            if (!name.compare("CMP_SLT")) {
-                handleCmpSlt(input, name, arg);
-                continue;
-            }
-            if (!name.compare("ALLOCA")) {
-                handleAlloca(input, name, arg);
-                continue;
-            }
-            if (!name.compare("SHL")) {
-                handleShli(input, name, arg);
-                continue;
-            }
-
-            outs() << "BB " << name << '\n';
-            builder.SetInsertPoint(BBMap[name]);
+            dispathAndHandleInstruction(input, name, arg);
         }
+
+        input.close();  // Bad make RAII
     }
 
     void verify()
@@ -245,7 +152,6 @@ public:
 
         ExecutionEngine *ee = EngineBuilder(std::unique_ptr<Module>(module.get())).create();
         ee->InstallLazyFunctionCreator([](const std::string &fnName) -> void * {
-            std::cout << fnName << std::endl;
             auto convName = converToABIIndependentName(fnName);
             if (convName == "simFlush") {
                 return reinterpret_cast<void *>(simFlush);
@@ -281,6 +187,8 @@ public:
     }
 
 private:
+    void dispathAndHandleInstruction(std::ifstream &input, std::string &name, std::string &arg);
+
     void handlePutPixel(std::ifstream &input, std::string &name, std::string &arg);
     void handleSimRand(std::ifstream &input, std::string &name, std::string &arg);
     void handleSimMax(std::ifstream &input, std::string &name, std::string &arg);
@@ -311,17 +219,19 @@ private:
     void handleMovi(std::ifstream &input, std::string &name, std::string &arg);
     void handleShli(std::ifstream &input, std::string &name, std::string &arg);
 
+    std::filesystem::path asmSrcPath;
+    std::ifstream input;
+
+    std::unordered_map<std::string, BasicBlock *> BBMap;
     LLVMContext context;
     std::unique_ptr<Module> module;
     IRBuilder<> builder;
+
     GlobalVariable *regFile;
+    Function *mainFunc;
 
     Type *voidType;
     Type *int32Type;
-    FunctionType *funcType;
+    Type *int64Type;
     ArrayType *regFileType;
-
-    Function *mainFunc;
-
-    std::unordered_map<std::string, BasicBlock *> BBMap;
 };

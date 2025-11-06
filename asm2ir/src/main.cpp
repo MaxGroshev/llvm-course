@@ -6,9 +6,9 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    asm2ir ir;
-    ir.initBB(argc, argv);
-    ir.parseInstr(argc, argv);
+    asm2ir ir(argc, argv);
+    ir.initBB();
+    ir.parseInstr();
     ir.verify();
     ir.runCode();
 
