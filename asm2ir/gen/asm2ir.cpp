@@ -326,7 +326,7 @@ void asm2ir::handleStBtOffset(std::ifstream &input, std::string &name,
     builder.CreateStore(val, gep);
 }
 
-void asm2ir::handleSti(std::ifstream &input, std::string &name,
+void asm2ir::handleSt(std::ifstream &input, std::string &name,
                        std::string &arg) {
 
     input >> arg;
@@ -367,7 +367,7 @@ void asm2ir::handleSti(std::ifstream &input, std::string &name,
     builder.CreateStore(val, gep);
 }
 
-void asm2ir::handleSt(std::ifstream &input, std::string &name,
+void asm2ir::handleSti(std::ifstream &input, std::string &name,
                       std::string &arg) {
 
     input >> arg;

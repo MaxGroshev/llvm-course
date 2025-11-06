@@ -1,31 +1,111 @@
-entry SIM_RAND x2 SREM x3 x2 246 SEXT x4 x3 ST 16763144 256 512 x1 x4 255 MOV
-        x71 x3 MOVi x72 0 BR BB7 BB7 MOV x8 x71 MOV x9 x72 ZEXT x10 x8 MOVi
-            x73 0 BR BB11 BB11 MOV x12 x73 CMP_EQ x13 x12 256 BR_COND x13 BB17
-                BB14 BB14 CMP_EQ x15 x12 x10 TRUNC x16 x12 MOVi x74 1 BR BB20
-                    BB17 AND x18 x9 127 CMP_EQ x19 x18 0 BR_COND x19 BB38 BB100
-                        BB100 MOV x78 x8 BR BB68 BB20 MOV x21 x74 CMP_EQ x22
-                            x21 511 BR_COND x22 BB23 BB25 BB23 ADDi x24
-                                x12 1 ADDi x73 x24 0 BR BB11 BB25 LD
-                                    x27 256 512 x1 x12 x21 TRUNC x28 x21 ADDi
-                                        x29 x28 -
-    1 PUT_PIXEL x29 x16 x27 CMP_EQ x30 x21 447 SELECT x31 x30 x15 0 MOVi x75 448 BR_COND
-        x31 BB32 BB34 BB32 MOV x33 x75 MOV x74 x33 BR BB20 BB34 ADDi x35 x21 1 LD
-            x37 256 512 x1 x12 x35 STi x37 256 512 x1 x12 x21 MOV x75 x35 BR BB32
-                BB38 SIM_RAND x39 SREM x40 x39 246 SEXT x41 x40 MOVi x76 0 BR BB42
-                    BB42 MOV x43 x76 CMP_EQ x44 x43 256 BR_COND x44 BB55 BB45 BB45
-                        TRUNC x46 x43 SUB x47 x40 x46 SIM_ABS x48 x47 CMP_SGT x49
-                            x48 35 BR_COND x49 BB50 BB53 BB50 SHL x51 x43 11 ADDi
-                                x52 x51 2040 ST_BT_OFFSET 7522568 x1 x52 BR BB53
-                                    BB53 ADDi x54 x43 1 MOV X76 x54 BR BB42 BB55 SIM_MIN
-                                        x56 x8 x40 SEXT x57 x56 MOV x77 x57 BR BB58
-                                            BB58 MOV x59 x77 SIM_MAX x60 x8 x44
-                                                SEXT x61 x60 CMP_SLT x62 x59 x61 BR_COND x62 BB65 BB63 BB63
-                                                    ST 16763144 256 512 x1 x41 447 MOV x78 x40 BR
-                                                        BB68 BB65 ST 16763144 256 512 x1
-                                                            x59 447 ADDi x67 x59 1 MOV x77 x67 BR
-                                                                BB58 BB68 MOV x69 x78
-                                                                    SIM_FLUSH ADDi x70
-                                                                        x9 1 MOV x71 x69 MOV
-                                                                            x72 x70
-                                                                                BR BB7
-                                                                                    exit EXIT
+entry
+    SIM_RAND x2
+    SREM x3 x2 246
+    SEXT x4 x3
+    STi 16763144 256 512 x1 x4 255
+    MOV x71 x3 
+    MOVi x72 0
+    BR BB7
+BB7
+    MOV x8 x71 
+    MOV x9 x72 
+    ZEXT x10 x8
+    MOVi x73 0
+    BR BB11
+BB11
+    MOV x12 x73
+    CMP_EQ x13 x12 256
+    BR_COND x13 BB17 BB14
+BB14
+    CMP_EQ x15 x12 x10 
+    TRUNC x16 x12
+    MOVi x74 1
+    BR BB20
+BB17
+    AND x18 x9 127
+    CMP_EQ x19 x18 0
+    BR_COND x19 BB38 BB100
+BB100
+    MOV x78 x8
+    BR BB68
+BB20
+    MOV x21 x74
+    CMP_EQ x22 x21 511
+    BR_COND x22 BB23 BB25
+BB23
+    ADDi x24 x12 1
+    ADDi x73 x24 0
+    BR BB11
+BB25
+    LD x27 256 512 x1 x12 x21
+    TRUNC x28 x21 
+    ADDi x29 x28 -1
+    PUT_PIXEL x29 x16 x27
+    CMP_EQ x30 x21 447
+    SELECT x31 x30 x15 0
+    MOVi x75 448
+    BR_COND x31 BB32 BB34
+BB32
+    MOV x33 x75
+    MOV x74 x33
+    BR BB20
+BB34
+    ADDi x35 x21 1
+    LD x37 256 512 x1 x12 x35
+    ST x37 256 512 x1 x12 x21
+    MOV x75 x35
+    BR BB32
+BB38   
+    SIM_RAND x39
+    SREM x40 x39 246
+    SEXT x41 x40
+    MOVi x76 0
+    BR BB42    
+BB42
+    MOV x43 x76
+    CMP_EQ x44 x43 256
+    BR_COND x44 BB55 BB45
+BB45
+    TRUNC x46 x43
+    SUB x47 x40 x46
+    SIM_ABS x48 x47
+    CMP_SGT x49 x48 35
+    BR_COND x49 BB50 BB53
+BB50
+    SHL x51 x43 11
+    ADDi x52 x51 2040
+    ST_BT_OFFSET 7522568 x1 x52
+    BR BB53
+BB53
+    ADDi x54 x43 1
+    MOV X76 x54
+    BR BB42
+BB55
+    SIM_MIN x56 x8 x40
+    SEXT x57 x56
+    MOV x77 x57
+    BR BB58
+BB58
+    MOV x59 x77
+    SIM_MAX x60 x8 x44
+    SEXT x61 x60
+    CMP_SLT x62 x59 x61
+    BR_COND x62 BB65 BB63
+BB63
+    STi 16763144 256 512 x1 x41 447
+    MOV x78 x40
+    BR BB68
+BB65
+    STi 16763144 256 512 x1 x59 447
+    ADDi x67 x59 1
+    MOV x77 x67
+    BR BB58
+BB68
+    MOV x69 x78
+    SIM_FLUSH
+    ADDi x70 x9 1
+    MOV x71 x69
+    MOV x72 x70
+    BR BB7
+exit
+    EXIT

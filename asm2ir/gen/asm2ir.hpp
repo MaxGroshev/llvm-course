@@ -88,7 +88,7 @@ class asm2ir {
             }
             if (!name.compare("SEXT") || !name.compare("MOV") ||
                 !name.compare("MOVi") || !name.compare("ZEXT") ||
-                !name.compare("TRUNC") || !name.compare("ST") ||
+                !name.compare("TRUNC") ||
                 !name.compare("SIM_ABS")) {
                 input >> arg >> arg;
                 continue;
