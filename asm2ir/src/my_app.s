@@ -1,10 +1,10 @@
 entry
-    ALLOCA_2DEM x1 256 512
+    ALLOCA x1 256 512
     SIM_RAND x2
-    SREM x3 x2 246
-    SEXT x4 x3
-    STi 16763144 256 512 x1 x4 255
-    MOV x71 x3 
+    SREM x2 x2 246
+    SEXT x2 x2
+    STi 16763144 256 512 x1 x2 255
+    MOV x71 x2 
     MOVi x72 0
     BR BB7
 BB7

@@ -1,4 +1,3 @@
-#include "../sim.h"
 
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/ExecutionEngine/GenericValue.h"
@@ -11,6 +10,10 @@
 #include <fstream>
 #include <iostream>
 #include <unordered_map>
+
+#include "graphic/public_interface.h"
+
+#include "utils/utils.hpp"
 
 using namespace llvm;
 
@@ -52,7 +55,7 @@ public:
 
         outs() << "\n#[FILE]:\nBBs:";
         while (input >> name) {
-            if (!name.compare("ALLOCA_2DEM") || !name.compare("SREM") ||
+            if (!name.compare("ALLOCA") || !name.compare("SREM") ||
                 !name.compare("GETELEMPTRi") || !name.compare("GETELEMPTR") ||
                 !name.compare("ADDi") || !name.compare("CMP_EQ") || !name.compare("CMP_SGT") ||
                 !name.compare("CMP_SLT") || !name.compare("BR_COND") || !name.compare("AND") ||
@@ -211,7 +214,7 @@ public:
                 handleCmpSlt(input, name, arg);
                 continue;
             }
-            if (!name.compare("ALLOCA_2DEM")) {
+            if (!name.compare("ALLOCA")) {
                 handleAlloca(input, name, arg);
                 continue;
             }
@@ -243,22 +246,23 @@ public:
         ExecutionEngine *ee = EngineBuilder(std::unique_ptr<Module>(module.get())).create();
         ee->InstallLazyFunctionCreator([](const std::string &fnName) -> void * {
             std::cout << fnName << std::endl;
-            if (fnName == "_simFlush") {
+            auto convName = converToABIIndependentName(fnName);
+            if (convName == "simFlush") {
                 return reinterpret_cast<void *>(simFlush);
             }
-            if (fnName == "_simPutPixel") {
+            if (convName == "simPutPixel") {
                 return reinterpret_cast<void *>(simPutPixel);
             }
-            if (fnName == "_simRand") {
+            if (convName == "simRand") {
                 return reinterpret_cast<void *>(simRand);
             }
-            if (fnName == "_simAbs") {
+            if (convName == "simAbs") {
                 return reinterpret_cast<void *>(simAbs);
             }
-            if (fnName == "_simMax") {
+            if (convName == "simMax") {
                 return reinterpret_cast<void *>(simMax);
             }
-            if (fnName == "_simMin") {
+            if (convName == "simMin") {
                 return reinterpret_cast<void *>(simMin);
             }
             return nullptr;

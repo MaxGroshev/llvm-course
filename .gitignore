@@ -1,3 +1,4 @@
 build/
+asm2ir/build
 .vscode/
 .cache/
