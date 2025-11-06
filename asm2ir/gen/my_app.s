@@ -1,4 +1,5 @@
 entry
+    ALLOCA_2DEM x1 256 512
     SIM_RAND x2
     SREM x3 x2 246
     SEXT x4 x3

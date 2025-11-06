@@ -24,20 +24,10 @@ class asm2ir {
         voidType = Type::getVoidTy(context);
         int32Type = Type::getInt32Ty(context);
 
-        regFileType = ArrayType::get(int32Type, REG_FILE_SIZE);
+        regFileType = ArrayType::get(builder.getInt64Ty(), REG_FILE_SIZE);
         regFile = new GlobalVariable(*module, regFileType, false,
                                      GlobalValue::PrivateLinkage, 0, "regFile");
         regFile->setInitializer(ConstantAggregateZero::get(regFileType));
-
-        ArrayType *innerArrayType =
-            ArrayType::get(Type::getInt32Ty(context), 512);
-        ArrayType *outerArrayType = ArrayType::get(innerArrayType, 256);
-        // arrayPtrStorage = ArrayType::get(int32Type, REG_FILE_SIZE);
-        arrayPtrStorage = new GlobalVariable(*module, outerArrayType, false,
-                                             GlobalValue::PrivateLinkage, 0,
-                                             "arrayPtrStorage");
-        arrayPtrStorage->setInitializer(
-            ConstantAggregateZero::get(regFileType));
 
         funcType = FunctionType::get(voidType, false);
         mainFunc = Function::Create(funcType, Function::ExternalLinkage, "main",
@@ -196,14 +186,6 @@ class asm2ir {
                 handleStBtOffset(input, name, arg);
                 continue;
             }
-            if (!name.compare("GETELEMPTR")) {
-                handleGetelemptr(input, name, arg);
-                continue;
-            }
-            if (!name.compare("GETELEMPTRi")) {
-                handleGetelemptri(input, name, arg);
-                continue;
-            }
             if (!name.compare("ST")) {
                 handleSt(input, name, arg);
                 continue;
@@ -324,10 +306,6 @@ class asm2ir {
     void handleSext(std::ifstream &input, std::string &name, std::string &arg);
     void handleStBtOffset(std::ifstream &input, std::string &name,
                           std::string &arg);
-    void handleGetelemptr(std::ifstream &input, std::string &name,
-                          std::string &arg);
-    void handleGetelemptri(std::ifstream &input, std::string &name,
-                           std::string &arg);
     void handleSt(std::ifstream &input, std::string &name, std::string &arg);
     void handleSti(std::ifstream &input, std::string &name, std::string &arg);
     void handleZext(std::ifstream &input, std::string &name, std::string &arg);
@@ -350,7 +328,6 @@ class asm2ir {
     std::unique_ptr<Module> module;
     IRBuilder<> builder;
     GlobalVariable *regFile;
-    GlobalVariable *arrayPtrStorage;
 
     Type *voidType;
     Type *int32Type;

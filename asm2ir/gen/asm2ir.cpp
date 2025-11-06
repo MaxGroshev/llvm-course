@@ -203,107 +203,30 @@ void asm2ir::handleAddi(std::ifstream &input, std::string &name,
 
 void asm2ir::handleAlloca(std::ifstream &input, std::string &name,
                           std::string &arg) {
-    // input >> arg;
-    // outs() << "\tAlloca: " << arg;
-    // // res
-    // Value *res = builder.CreateConstGEP2_32(regFileType, regFile, 0,
-    //                                           std::stoi(arg.substr(1)));
-    // input >> arg;
-    // outs() << " " << arg;
-    // // arg1
-    // auto outer = std::stoi(arg);
-    // input >> arg;
-    // outs() << " * " << arg << '\n';
-    // // arg2
-    // auto inner = std::stoi(arg);
-    // ArrayType* innerArrayType = ArrayType::get(Type::getInt32Ty(context),
-    // inner); ArrayType* outerArrayType = ArrayType::get(innerArrayType,
-    // outer);
-
-    // arrayPtrStorage = builder.CreateAlloca(outerArrayType, nullptr);
-
-    // FunctionType* lifetimeStartType = FunctionType::get(
-    //     Type::getVoidTy(context),
-    //     {Type::getInt64Ty(context),
-    //     PointerType::get(Type::getInt8Ty(context), 0)}, false
-    // );
-    // Function* lifetimeStartFunc = Function::Create(
-    //     lifetimeStartType,
-    //     Function::ExternalLinkage,
-    //     "llvm.lifetime.start.p0",
-    //     module.get()
-    // );
-    // Function* lifetimeStart = module->getFunction("llvm.lifetime.start.p0");
-    // Value* bitcast = builder.CreateBitCast(arrayPtrStorage,
-    // PointerType::get(Type::getInt8Ty(context), 0)); CallInst* lifetimeCall =
-    // builder.CreateCall(lifetimeStart, {
-    //     ConstantInt::get(Type::getInt64Ty(context), 524288),
-    //     bitcast
-    // });
-
-    // FunctionType* memsetType = FunctionType::get(
-    //     Type::getVoidTy(context),
-    //     {PointerType::get(Type::getInt8Ty(context), 0),
-    //     Type::getInt8Ty(context),
-    //     Type::getInt64Ty(context),
-    //     Type::getInt1Ty(context)},
-    //     false
-    // );
-    // Function::Create(memsetType, Function::ExternalLinkage,
-    // "llvm.memset.p0.i64", module.get()); Function* memset =
-    // module->getFunction("llvm.memset.p0.i64"); CallInst* memsetCall =
-    // builder.CreateCall(memset, {
-    //     bitcast,
-    //     ConstantInt::get(Type::getInt8Ty(context), 1),
-    //     ConstantInt::get(Type::getInt64Ty(context), 524288),
-    //     ConstantInt::get(Type::getInt1Ty(context), false)
-    // });
-    // arrayPtrStorage = builder.CreateAlloca(outerArrayType,  nullptr);
-    // builder.CreateStore(alloca, arrayPtrStorage);
-}
-
-void asm2ir::handleGetelemptri(std::ifstream &input, std::string &name,
-                               std::string &arg) {
     input >> arg;
-    outs() << "\tgetptri: " << arg;
+    outs() << "\tAlloca: " << arg;
     // res
     Value *res = builder.CreateConstGEP2_32(regFileType, regFile, 0,
-                                            std::stoi(arg.substr(1)));
+                                              std::stoi(arg.substr(1)));
     input >> arg;
-    outs() << arg << " ";
+    outs() << " " << arg;
     // arg1
-    Value *src = builder.CreateConstGEP2_32(regFileType, regFile, 0,
-                                            std::stoi(arg.substr(1)));
+    auto outer = std::stoi(arg);
     input >> arg;
     outs() << " * " << arg << '\n';
     // arg2
-    auto offset = std::stoi(arg);
+    auto inner = std::stoi(arg);
+    ArrayType* innerArrayType = ArrayType::get(Type::getInt32Ty(context), inner); 
+    ArrayType* outerArrayType = ArrayType::get(innerArrayType,outer);
 
-    Value *gep = builder.CreateInBoundsGEP(builder.getInt8Ty(), src,
-                                           builder.getInt64(offset));
-    builder.CreateStore(gep, res);
-}
 
-void asm2ir::handleGetelemptr(std::ifstream &input, std::string &name,
-                              std::string &arg) {
-    input >> arg;
-    outs() << "\t getptr" << arg;
-    // res
-    Value *res = builder.CreateConstGEP2_32(regFileType, regFile, 0,
-                                            std::stoi(arg.substr(1)));
-    input >> arg;
-    outs() << arg;
-    // arg1
-    Value *src = builder.CreateConstGEP2_32(regFileType, regFile, 0,
-                                            std::stoi(arg.substr(1)));
-    input >> arg;
-    outs() << " * " << arg << '\n';
-    // arg2
-    auto offset = std::stoi(arg.substr(1));
-
-    Value *gep = builder.CreateInBoundsGEP(builder.getInt8Ty(), src,
-                                           builder.getInt64(offset));
-    builder.CreateStore(gep, res);
+    auto arrPtr = builder.CreateAlloca(outerArrayType,  nullptr);
+    // Value* zeroArray = ConstantAggregateZero::get(outerArrayType);
+    // Value* zeroInit = ConstantAggregateZero::get(outerArrayType);
+    // builder.CreateStore(zeroInit, arrPtr);
+    // arrPtr->setInitializer(
+    //         ConstantAggregateZero::get(regFileType));
+    builder.CreateStore(builder.CreatePtrToInt(arrPtr, builder.getInt64Ty()), res);
 }
 
 void asm2ir::handleStBtOffset(std::ifstream &input, std::string &name,
@@ -320,8 +243,12 @@ void asm2ir::handleStBtOffset(std::ifstream &input, std::string &name,
     outs() << " * " << arg;
     auto off2 = builder.CreateConstGEP2_32(regFileType, regFile, 0,
                                            std::stoi(arg.substr(1)));
+    
+    ArrayType* innerArrayType = ArrayType::get(Type::getInt32Ty(context), 512); 
+    ArrayType* outerArrayType = ArrayType::get(innerArrayType,256);
 
-    llvm::Value *gep = builder.CreateGEP(builder.getInt8Ty(), arrayPtrStorage,
+    auto mem = builder.CreateIntToPtr(builder.CreateLoad(builder.getInt64Ty(), src), builder.getPtrTy());
+    llvm::Value *gep = builder.CreateGEP(builder.getInt8Ty(), mem,
                                          builder.CreateLoad(int32Type, off2));
     builder.CreateStore(val, gep);
 }
@@ -358,9 +285,10 @@ void asm2ir::handleSt(std::ifstream &input, std::string &name,
     outs() << " * " << arg;
     auto off3 = builder.CreateConstGEP2_32(regFileType, regFile, 0,
                                            std::stoi(arg.substr(1)));
-
+                                        
+    auto mem = builder.CreateIntToPtr(builder.CreateLoad(builder.getInt64Ty(), src), builder.getPtrTy());
     Value *gep = builder.CreateInBoundsGEP(
-        outerArrayType, arrayPtrStorage,
+        outerArrayType, mem,
         {ConstantInt::get(Type::getInt32Ty(context), 0),
          builder.CreateLoad(int32Type, off2),
          builder.CreateLoad(int32Type, off3)});
@@ -397,8 +325,9 @@ void asm2ir::handleSti(std::ifstream &input, std::string &name,
     outs() << " * " << arg;
     auto off3 = ConstantInt::get(Type::getInt32Ty(context), std::stoi(arg));
 
+    auto mem = builder.CreateIntToPtr(builder.CreateLoad(builder.getInt64Ty(), src), builder.getPtrTy());
     Value *gep = builder.CreateInBoundsGEP(
-        outerArrayType, arrayPtrStorage,
+        outerArrayType, mem,
         {ConstantInt::get(Type::getInt32Ty(context), 0),
          builder.CreateLoad(int32Type, off2), off3});
     builder.CreateStore(val, gep);
@@ -436,8 +365,9 @@ void asm2ir::handleLd(std::ifstream &input, std::string &name,
     auto off3 = builder.CreateConstGEP2_32(regFileType, regFile, 0,
                                            std::stoi(arg.substr(1)));
 
+    auto mem = builder.CreateIntToPtr(builder.CreateLoad(builder.getInt64Ty(), src), builder.getPtrTy());
     Value *gep = builder.CreateInBoundsGEP(
-        outerArrayType, arrayPtrStorage,
+        outerArrayType, mem,
         {ConstantInt::get(Type::getInt32Ty(context), 0),
          builder.CreateLoad(int32Type, off2),
          builder.CreateLoad(int32Type, off3)});
