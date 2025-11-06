@@ -15,26 +15,27 @@
 using namespace llvm;
 
 class asm2ir {
-  private:
+private:
     static constexpr int REG_FILE_SIZE = 100;
 
-  public:
-    asm2ir() : builder(context) {
-        module = std::unique_ptr<Module>(new Module{"top", context});
+public:
+    asm2ir() : builder(context)
+    {
+        module = std::unique_ptr<Module>(new Module {"top", context});
         voidType = Type::getVoidTy(context);
         int32Type = Type::getInt32Ty(context);
 
         regFileType = ArrayType::get(builder.getInt64Ty(), REG_FILE_SIZE);
-        regFile = new GlobalVariable(*module, regFileType, false,
-                                     GlobalValue::PrivateLinkage, 0, "regFile");
+        regFile = new GlobalVariable(*module, regFileType, false, GlobalValue::PrivateLinkage, 0,
+                                     "regFile");
         regFile->setInitializer(ConstantAggregateZero::get(regFileType));
 
         funcType = FunctionType::get(voidType, false);
-        mainFunc = Function::Create(funcType, Function::ExternalLinkage, "main",
-                                    module.get());
+        mainFunc = Function::Create(funcType, Function::ExternalLinkage, "main", module.get());
     }
 
-    int initBB(int argc, char **argv) {
+    int initBB(int argc, char **argv)
+    {
         if (argc != 2) {
             outs() << "[ERROR] Need 1 argument: file with assembler code\n";
             return 1;
@@ -53,12 +54,10 @@ class asm2ir {
         while (input >> name) {
             if (!name.compare("ALLOCA_2DEM") || !name.compare("SREM") ||
                 !name.compare("GETELEMPTRi") || !name.compare("GETELEMPTR") ||
-                !name.compare("ADDi") || !name.compare("CMP_EQ") ||
-                !name.compare("CMP_SGT") || !name.compare("CMP_SLT") ||
-                !name.compare("BR_COND") || !name.compare("AND") ||
-                !name.compare("SHL") || !name.compare("PUT_PIXEL") ||
-                !name.compare("SIM_MAX") || !name.compare("SIM_MIN") ||
-                !name.compare("SUB") || !name.compare("ST_BT_OFFSET")) {
+                !name.compare("ADDi") || !name.compare("CMP_EQ") || !name.compare("CMP_SGT") ||
+                !name.compare("CMP_SLT") || !name.compare("BR_COND") || !name.compare("AND") ||
+                !name.compare("SHL") || !name.compare("PUT_PIXEL") || !name.compare("SIM_MAX") ||
+                !name.compare("SIM_MIN") || !name.compare("SUB") || !name.compare("ST_BT_OFFSET")) {
                 input >> arg >> arg >> arg;
                 continue;
             }
@@ -70,16 +69,13 @@ class asm2ir {
                 input >> arg >> arg >> arg >> arg;
                 continue;
             }
-            if (!name.compare("GETELEMPTR_2DEMi") ||
-                !name.compare("GETELEMPTR_2DEM") || !name.compare("ST") ||
-                !name.compare("LD") || !name.compare("STi")) {
+            if (!name.compare("GETELEMPTR_2DEMi") || !name.compare("GETELEMPTR_2DEM") ||
+                !name.compare("ST") || !name.compare("LD") || !name.compare("STi")) {
                 input >> arg >> arg >> arg >> arg >> arg >> arg;
                 continue;
             }
-            if (!name.compare("SEXT") || !name.compare("MOV") ||
-                !name.compare("MOVi") || !name.compare("ZEXT") ||
-                !name.compare("TRUNC") ||
-                !name.compare("SIM_ABS")) {
+            if (!name.compare("SEXT") || !name.compare("MOV") || !name.compare("MOVi") ||
+                !name.compare("ZEXT") || !name.compare("TRUNC") || !name.compare("SIM_ABS")) {
                 input >> arg >> arg;
                 continue;
             }
@@ -96,7 +92,8 @@ class asm2ir {
         return 0;
     }
 
-    void parseInstr(int argc, char **argv) {
+    void parseInstr(int argc, char **argv)
+    {
         std::string name;
         std::string arg;
 
@@ -228,7 +225,8 @@ class asm2ir {
         }
     }
 
-    void verify() {
+    void verify()
+    {
         outs() << "\n#[LLVM IR]:\n";
         module->print(outs(), nullptr);
         outs() << '\n';
@@ -236,13 +234,13 @@ class asm2ir {
         outs() << "[VERIFICATION] " << (verif ? "FAIL\n\n" : "OK\n\n");
     }
 
-    int runCode() {
+    int runCode()
+    {
         outs() << "\n#[Running code]\n";
         InitializeNativeTarget();
         InitializeNativeTargetAsmPrinter();
 
-        ExecutionEngine *ee =
-            EngineBuilder(std::unique_ptr<Module>(module.get())).create();
+        ExecutionEngine *ee = EngineBuilder(std::unique_ptr<Module>(module.get())).create();
         ee->InstallLazyFunctionCreator([](const std::string &fnName) -> void * {
             std::cout << fnName << std::endl;
             if (fnName == "_simFlush") {
@@ -253,9 +251,6 @@ class asm2ir {
             }
             if (fnName == "_simRand") {
                 return reinterpret_cast<void *>(simRand);
-            }
-            if (fnName == "_memset") {
-                return reinterpret_cast<void *>(llvm::Intrinsic::memset);
             }
             if (fnName == "_simAbs") {
                 return reinterpret_cast<void *>(simAbs);
@@ -281,44 +276,32 @@ class asm2ir {
         return EXIT_SUCCESS;
     }
 
-  private:
-    void handlePutPixel(std::ifstream &input, std::string &name,
-                        std::string &arg);
-    void handleSimRand(std::ifstream &input, std::string &name,
-                       std::string &arg);
-    void handleSimMax(std::ifstream &input, std::string &name,
-                      std::string &arg);
-    void handleSimMin(std::ifstream &input, std::string &name,
-                      std::string &arg);
-    void handleSimAbs(std::ifstream &input, std::string &name,
-                      std::string &arg);
-    void handleSimFlush(std::ifstream &input, std::string &name,
-                        std::string &arg);
+private:
+    void handlePutPixel(std::ifstream &input, std::string &name, std::string &arg);
+    void handleSimRand(std::ifstream &input, std::string &name, std::string &arg);
+    void handleSimMax(std::ifstream &input, std::string &name, std::string &arg);
+    void handleSimMin(std::ifstream &input, std::string &name, std::string &arg);
+    void handleSimAbs(std::ifstream &input, std::string &name, std::string &arg);
+    void handleSimFlush(std::ifstream &input, std::string &name, std::string &arg);
     void handleExit(std::ifstream &input, std::string &name, std::string &arg);
 
-    void handleBrCond(std::ifstream &input, std::string &name,
-                      std::string &arg);
+    void handleBrCond(std::ifstream &input, std::string &name, std::string &arg);
     void handleSub(std::ifstream &input, std::string &name, std::string &arg);
     void handleAddi(std::ifstream &input, std::string &name, std::string &arg);
-    void handleAlloca(std::ifstream &input, std::string &name,
-                      std::string &arg);
+    void handleAlloca(std::ifstream &input, std::string &name, std::string &arg);
     void handleSremi(std::ifstream &input, std::string &name, std::string &arg);
     void handleSext(std::ifstream &input, std::string &name, std::string &arg);
-    void handleStBtOffset(std::ifstream &input, std::string &name,
-                          std::string &arg);
+    void handleStBtOffset(std::ifstream &input, std::string &name, std::string &arg);
     void handleSt(std::ifstream &input, std::string &name, std::string &arg);
     void handleSti(std::ifstream &input, std::string &name, std::string &arg);
     void handleZext(std::ifstream &input, std::string &name, std::string &arg);
     void handleCmpEq(std::ifstream &input, std::string &name, std::string &arg);
-    void handleCmpSlt(std::ifstream &input, std::string &name,
-                      std::string &arg);
-    void handleCmpSgt(std::ifstream &input, std::string &name,
-                      std::string &arg);
+    void handleCmpSlt(std::ifstream &input, std::string &name, std::string &arg);
+    void handleCmpSgt(std::ifstream &input, std::string &name, std::string &arg);
     void handleTrunc(std::ifstream &input, std::string &name, std::string &arg);
     void handleBr(std::ifstream &input, std::string &name, std::string &arg);
     void handleAndi(std::ifstream &input, std::string &name, std::string &arg);
-    void handleSelect(std::ifstream &input, std::string &name,
-                      std::string &arg);
+    void handleSelect(std::ifstream &input, std::string &name, std::string &arg);
     void handleLd(std::ifstream &input, std::string &name, std::string &arg);
     void handleMov(std::ifstream &input, std::string &name, std::string &arg);
     void handleMovi(std::ifstream &input, std::string &name, std::string &arg);
