@@ -19,7 +19,7 @@ using namespace llvm;
 
 class asm2ir {
 private:
-    static constexpr int REG_FILE_SIZE = 100;
+    static constexpr int REG_FILE_SIZE = 64;
 
 public:
     asm2ir() : builder(context)
