@@ -88,3 +88,22 @@ cmake -DSDL2_DYN_LIB_PATH=<>..
 # for instance
 cmake -DSDL2_DYN_LIB_PATH=/opt/homebrew/Cellar/sdl2/2.32.10/lib/libSDL2.dylib..
 make run_app_with_generated_ll_interp
+```
+<h1 style="text-align:center;">HW4</h1>
+
+## How to build asm2ir generator ##
+
+### Compile to bin file and run
+```bash 
+cd asm2ir
+mkdir build
+cd ./build
+# mac command:
+cmake -DLLVM_DIR=/opt/homebrew/opt/llvm@<>/lib/cmake/llvm -DCMAKE_C_COMPILER=/opt/homebrew/opt/llvm@<>/bin/clang -DCMAKE_CXX_COMPILER=/opt/homebrew/opt/llvm@<>/bin/clang++ -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..
+# others platform(should work)
+cmake ..
+make 
+./asm2ir ../src/my_app.s
+```
+
+
